@@ -9,9 +9,9 @@
 <script type="application/json" id="price-db">
 {
   "artifact_id": "humble-price-index",
-  "version": 1,
+  "version": 2,
   "created": "2026-07-08",
-  "last_refresh": "2026-07-08",
+  "last_refresh": "2026-07-09",
   "base_month": "2025-01",
   "refresh_protocol": {
     "cadence": "weekly, Monday 07:00 Europe/Stockholm",
@@ -25,7 +25,8 @@
     ]
   },
   "run_log": [
-    {"date": "2026-07-08", "note": "Initial build. 5 scout agents validated all sources with live fetches. FRED data through May 2026; SunSirs through Jul 2026; freight through 2026-07-08."}
+    {"date": "2026-07-08", "note": "Initial build. 5 scout agents validated all sources with live fetches. FRED data through May 2026; SunSirs through Jul 2026; freight through 2026-07-08."},
+    {"date": "2026-07-09", "note": "Added Femcare materials family: cotton (PCOTTINDUSDM, live), SAP/PBAT petro proxy (POILBREUSDM Brent), hot-melt adhesive proxy (PCU325520325520), CaCO3 proxy (WPU13940113 ground limestone). All validated with live fetches, data through 2026-05. Other femcare layers map to existing pulp/paper/PLA/freight series."}
   ],
   "families": [
     {
@@ -192,6 +193,46 @@
           "points": {"2025-01-03": 2962, "2025-01-10": 2851, "2025-01-17": 2440, "2025-01-24": 2279, "2025-01-31": 2147, "2025-02-07": 2147, "2025-02-14": 1805, "2025-02-21": 1608, "2025-02-28": 1578, "2025-03-07": 1693, "2025-03-14": 1582, "2025-03-21": 1342, "2025-03-28": 1306, "2025-04-04": 1318, "2025-04-11": 1336, "2025-04-18": 1356, "2025-04-25": 1316, "2025-05-02": 1260, "2025-05-09": 1200, "2025-05-16": 1161, "2025-05-23": 1154, "2025-05-30": 1317, "2025-06-06": 1587, "2025-06-13": 1667, "2025-06-20": 1844, "2025-06-27": 1835, "2025-07-04": 2030, "2025-07-11": 2101, "2025-07-18": 2099, "2025-12-12": 1538, "2026-07-03": 3418}
         }
       ]
+    },
+    {
+      "id": "femcare",
+      "name": "Femcare materials",
+      "family_note": "Cotton top sheet & side barrier, SAP/PBAT, hot-melt adhesive, CaCO3 filler. Other femcare layers reuse series above: airlaid/fluff & core pulp → Wood pulp; release & wrapper paper → Packaging paper; PLA back film → PLA; inbound ocean freight → Container freight (China lanes as directional proxy for the India→US/EU lanes actually used).",
+      "series": [
+        {
+          "id": "cotton", "label": "Cotton (Cotlook A)", "proxy": false,
+          "source": "FRED PCOTTINDUSDM (IMF Global Price of Cotton, Cotlook A)",
+          "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=PCOTTINDUSDM",
+          "unit": "US cents/lb", "currency": "USD", "frequency": "monthly",
+          "quirks": "~1-2 month publication lag; recent months revisable.",
+          "points": {"2025-01": 78.24, "2025-02": 78.10, "2025-03": 77.64, "2025-04": 78.28, "2025-05": 77.99, "2025-06": 78.19, "2025-07": 78.91, "2025-08": 78.57, "2025-09": 77.98, "2025-10": 75.98, "2025-11": 75.28, "2025-12": 74.07, "2026-01": 74.49, "2026-02": 73.96, "2026-03": 76.94, "2026-04": 85.58, "2026-05": 92.01}
+        },
+        {
+          "id": "sap-pbat", "label": "SAP & PBAT (petro proxy)", "proxy": true,
+          "proxy_note": "No free price series exists for sodium polyacrylate (SAP) or PBAT. Proxy = Brent crude, their shared petro-feedstock chain (acrylic acid/propylene for SAP; adipic acid/BDO for PBAT). Captures feedstock direction only, not polymer-specific capacity/spread moves. Mar-May 2026 jump is real in the data.",
+          "source": "FRED POILBREUSDM (IMF Global Price of Brent Crude)",
+          "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=POILBREUSDM",
+          "unit": "USD/bbl", "currency": "USD", "frequency": "monthly",
+          "points": {"2025-01": 78.19, "2025-02": 75.19, "2025-03": 71.74, "2025-04": 66.93, "2025-05": 64.09, "2025-06": 69.85, "2025-07": 69.56, "2025-08": 67.24, "2025-09": 67.61, "2025-10": 63.98, "2025-11": 63.69, "2025-12": 61.81, "2026-01": 64.59, "2026-02": 69.41, "2026-03": 99.41, "2026-04": 102.81, "2026-05": 106.30}
+        },
+        {
+          "id": "adhesive", "label": "Hot-melt adhesive (proxy)", "proxy": true,
+          "proxy_note": "Proxy = US PPI adhesive manufacturing (NAICS 325520) — industry index, not a hot-melt quote. Alt validated: WPU067903 adhesives & sealants commodity PPI (more volatile; 2025-01: 396.031 → 2026-05: 441.496). Dead: WPU0674, WPU06740201.",
+          "source": "FRED PCU325520325520 (PPI: Adhesive Manufacturing)",
+          "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=PCU325520325520",
+          "unit": "index Dec1983=100", "currency": "USD index", "frequency": "monthly",
+          "quirks": "~1.5-month lag; last ~4 months get one BLS revision cycle.",
+          "points": {"2025-01": 364.456, "2025-02": 366.450, "2025-03": 368.854, "2025-04": 370.223, "2025-05": 371.723, "2025-06": 373.509, "2025-07": 372.692, "2025-08": 372.779, "2025-09": 375.377, "2025-10": 375.802, "2025-11": 375.054, "2025-12": 375.341, "2026-01": 377.034, "2026-02": 376.538, "2026-03": 378.073, "2026-04": 381.366, "2026-05": 381.339}
+        },
+        {
+          "id": "caco3", "label": "Calcium carbonate (proxy)", "proxy": true,
+          "proxy_note": "No free PCC/GCC price series exists. Proxy = US PPI ground limestone (GCC feedstock). Thin-sample index with step changes (Apr 2025 drop, Jan 2026 jump are in the source data). Alt validated: PCU2123122123120 crushed/broken limestone (smoother, more upstream). Minor cost weight in product.",
+          "source": "FRED WPU13940113 (PPI: Ground limestone)",
+          "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WPU13940113",
+          "unit": "index Dec2003=100", "currency": "USD index", "frequency": "monthly",
+          "points": {"2025-01": 315.911, "2025-02": 317.308, "2025-03": 317.938, "2025-04": 289.886, "2025-05": 284.276, "2025-06": 284.830, "2025-07": 285.322, "2025-08": 285.132, "2025-09": 284.928, "2025-10": 287.682, "2025-11": 287.932, "2025-12": 289.761, "2026-01": 307.684, "2026-02": 307.480, "2026-03": 307.089, "2026-04": 290.360, "2026-05": 304.128}
+        }
+      ]
     }
   ],
   "gaps": [
@@ -326,6 +367,7 @@
       <li><b>Proxies are dashed lines.</b> A PPI proxy is a US producer-price <i>index</i> tracking the cost family, not a quoted market price for your grade — use it for direction and timing, not for absolute price checks.</li>
       <li><b>Plastics are China domestic spot (CNY/t)</b> from SunSirs — closest to what your China-side suppliers actually pay. The Mar 2026 polymer spike is real (mirrored, lagged, in the US PPI).</li>
       <li><b>Freight "Sweden" = China→North Europe base ports.</b> The 20ft Europe line is genuine per-TEU data (SCFI); its Aug–Nov 2025 gap is a data-availability gap, deliberately left broken rather than interpolated. FBX free history is irregular (weekly blog posts) — it densifies as weekly refreshes accumulate.</li>
+      <li><b>Femcare materials share series across the board:</b> the airlaid/fluff and absorbent-core pulp track the Wood pulp line, release/wrapper papers track Packaging paper, the bioplastic back film tracks PLA, and inbound ocean freight is tracked via the China lanes as a directional proxy for the India→US/EU routes actually used. SAP, PBAT and hot-melt have no free quoted price — they ride labeled proxies (Brent feedstock chain, adhesives PPI).</li>
       <li><b>FRED/PPI series lag ~1–2 months</b> (latest observation May 2026 as of the 2026-07-08 build); recent PPI months are preliminary and can be revised.</li>
       <li>Every value on this page was fetched from its named source on the retrieval date recorded in the embedded database — no interpolated or estimated points anywhere.</li>
     </ul>
@@ -471,6 +513,12 @@
     svg.addEventListener('mouseleave', function () { cross.style.display = 'none'; tip.style.display = 'none'; });
 
     // spot chips
+    if (fam.family_note) {
+      var fn = document.createElement('div');
+      fn.className = 'basenote'; fn.style.marginTop = '6px';
+      fn.textContent = fam.family_note;
+      card.appendChild(fn);
+    }
     var spots = fam.series.filter(function (s) { return s.spot; });
     if (spots.length) {
       var sd = document.createElement('div'); sd.className = 'spots';
