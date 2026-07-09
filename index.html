@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+<title>The Humble Co. Price Index</title>
+<script type="application/json" id="price-db">
+{
+  "artifact_id": "humble-price-index",
+  "version": 1,
+  "created": "2026-07-08",
+  "last_refresh": "2026-07-08",
+  "base_month": "2025-01",
+  "refresh_protocol": {
+    "cadence": "weekly, Monday 07:00 Europe/Stockholm",
+    "steps": [
+      "1. Locate the 'humble-price-index' artifact (Artifact tool, action:list), WebFetch its URL, extract this <script id='price-db'> JSON block — it is the database.",
+      "2. For each series: re-fetch from series.url (FRED: curl the fredgraph.csv keyless endpoint, response must start with 'observation_date'; SunSirs: month-end from https://www.sunsirs.com/uk/sdetail-month-YYYY-MM.html or spot from prodetail page, handle HW_CHECK cookie: GET with browser UA, extract 32-hex from inline script, replay with Cookie: HW_CHECK=<value>; FBX: headline $ is in fetchable HTML of the lane page; SCFI: weekly news reporting e.g. SunSirs/container-news, official page is image-only).",
+      "3. Append new points to series.points. NEVER delete or overwrite existing points. Update spot values with their dates.",
+      "4. If a source is dead: find a free replacement, splice (rebase replacement so its first overlapping point matches), set series.spliced_note, and add a lesson.",
+      "5. Bump version, set last_refresh, append run summary to run_log, add any new lessons to lessons[].",
+      "6. Rewrite the whole HTML file with the updated JSON (rendering code reads only this block) and republish the artifact IN PLACE via Artifact tool with url of the existing artifact."
+    ]
+  },
+  "run_log": [
+    {"date": "2026-07-08", "note": "Initial build. 5 scout agents validated all sources with live fetches. FRED data through May 2026; SunSirs through Jul 2026; freight through 2026-07-08."}
+  ],
+  "families": [
+    {
+      "id": "metals",
+      "name": "Core metals",
+      "series": [
+        {
+          "id": "aluminum", "label": "Aluminum", "proxy": false,
+          "source": "FRED PALUMUSDM (IMF Global Price, LME-based)",
+          "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=PALUMUSDM",
+          "unit": "USD/t", "currency": "USD", "frequency": "monthly",
+          "quirks": "~1-2 month publication lag; IMF series occasionally revised.",
+          "points": {"2025-01": 2571.37, "2025-02": 2655.77, "2025-03": 2651.60, "2025-04": 2367.80, "2025-05": 2447.34, "2025-06": 2525.96, "2025-07": 2606.37, "2025-08": 2598.74, "2025-09": 2654.48, "2025-10": 2793.09, "2025-11": 2819.06, "2025-12": 2875.90, "2026-01": 3133.98, "2026-02": 3065.19, "2026-03": 3372.95, "2026-04": 3594.38, "2026-05": 3654.02}
+        },
+        {
+          "id": "copper", "label": "Copper", "proxy": false,
+          "source": "FRED PCOPPUSDM (IMF Global Price, LME-based)",
+          "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=PCOPPUSDM",
+          "unit": "USD/t", "currency": "USD", "frequency": "monthly",
+          "quirks": "~1-2 month publication lag.",
+          "points": {"2025-01": 8976.68, "2025-02": 9330.98, "2025-03": 9735.82, "2025-04": 9172.70, "2025-05": 9531.20, "2025-06": 9835.07, "2025-07": 9770.58, "2025-08": 9671.88, "2025-09": 9994.77, "2025-10": 10739.92, "2025-11": 10812.03, "2025-12": 11790.96, "2026-01": 12986.61, "2026-02": 12951.34, "2026-03": 12528.71, "2026-04": 12890.69, "2026-05": 13483.75}
+        },
+        {
+          "id": "stainless", "label": "Stainless (420 proxy)", "proxy": true,
+          "proxy_note": "No free SS420 grade price exists (MEPS/Argus paywalled). Proxy = US PPI stainless steel pipe & tube, a finished stainless mill product index. Alt proxy validated: WPU101212 stainless scrap PPI (more volatile, nickel-driven; note SS420 is low-nickel).",
+          "source": "FRED WPU10170674 (PPI: Steel Pipe & Tube, Stainless)",
+          "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WPU10170674",
+          "unit": "index 1982=100", "currency": "USD index", "frequency": "monthly",
+          "quirks": "Rejected series: WPU10170502 discontinued 2023; WPU101707 is carbon steel.",
+          "points": {"2025-01": 131.669, "2025-02": 133.158, "2025-03": 132.455, "2025-04": 135.495, "2025-05": 139.919, "2025-06": 144.144, "2025-07": 143.349, "2025-08": 144.126, "2025-09": 143.246, "2025-10": 143.197, "2025-11": 144.624, "2025-12": 145.182, "2026-01": 148.478, "2026-02": 148.443, "2026-03": 149.336, "2026-04": 151.583, "2026-05": 151.535}
+        }
+      ]
+    },
+    {
+      "id": "plastics",
+      "name": "Plastics",
+      "series": [
+        {
+          "id": "pp", "label": "PP", "proxy": false,
+          "source": "SunSirs PP benchmark (China spot)",
+          "url": "https://www.sunsirs.com/uk/prodetail-718.html",
+          "history_url": "https://www.sunsirs.com/uk/sdetail-month-YYYY-MM.html",
+          "unit": "CNY/t", "currency": "CNY", "frequency": "monthly (month-end benchmark; latest point is most recent daily)",
+          "quirks": "China domestic spot. Benchmark basket occasionally revised. Mar 2026 spike (+38-43% across polymers) is real, mirrored in BLS.",
+          "points": {"2025-01": 7750.00, "2025-02": 7987.50, "2025-03": 8087.50, "2025-04": 7481.67, "2025-05": 7325.00, "2025-06": 7466.67, "2025-07": 7375.00, "2025-08": 7300.00, "2025-09": 7062.50, "2025-10": 6962.50, "2025-11": 6747.50, "2025-12": 6535.00, "2026-01": 6720.00, "2026-02": 6787.50, "2026-03": 9700.00, "2026-04": 9550.00, "2026-05": 10062.50, "2026-06": 8587.50, "2026-07-08": 8400.00}
+        },
+        {
+          "id": "hdpe", "label": "HDPE", "proxy": false,
+          "source": "SunSirs HDPE benchmark (China spot)",
+          "url": "https://www.sunsirs.com/uk/prodetail-295.html",
+          "history_url": "https://www.sunsirs.com/uk/sdetail-month-YYYY-MM.html",
+          "unit": "CNY/t", "currency": "CNY", "frequency": "monthly (month-end benchmark)",
+          "points": {"2025-01": 8400.00, "2025-02": 8387.50, "2025-03": 8387.50, "2025-04": 8112.50, "2025-05": 8095.00, "2025-06": 8112.50, "2025-07": 7975.00, "2025-08": 7982.50, "2025-09": 7912.50, "2025-10": 7650.00, "2025-11": 7387.50, "2025-12": 6862.50, "2026-01": 7337.50, "2026-02": 7317.50, "2026-03": 10137.50, "2026-04": 10137.50, "2026-05": 10157.50, "2026-06": 9837.50, "2026-07-08": 10032.50}
+        },
+        {
+          "id": "ldpe", "label": "LDPE", "proxy": false,
+          "source": "SunSirs LDPE benchmark (China spot)",
+          "url": "https://www.sunsirs.com/uk/prodetail-334.html",
+          "history_url": "https://www.sunsirs.com/uk/sdetail-month-YYYY-MM.html",
+          "unit": "CNY/t", "currency": "CNY", "frequency": "monthly (month-end benchmark)",
+          "points": {"2025-01": 9950.00, "2025-02": 10150.00, "2025-03": 9633.33, "2025-04": 9216.67, "2025-05": 9166.67, "2025-06": 9566.67, "2025-07": 9516.67, "2025-08": 9650.00, "2025-09": 9596.67, "2025-10": 9316.67, "2025-11": 9000.00, "2025-12": 8400.00, "2026-01": 9066.67, "2026-02": 8633.33, "2026-03": 11483.33, "2026-04": 11533.33, "2026-05": 10733.33, "2026-06": 9333.33, "2026-07-08": 9633.33}
+        },
+        {
+          "id": "pla", "label": "PLA (proxy)", "proxy": true,
+          "proxy_note": "No free PLA series exists (SunSirs doesn't track PLA; no BLS/FRED series; businessanalytiq history paywalled). Proxy = US PPI thermoplastic resins (all resins basket). One-off free reference: businessanalytiq 2026-06 PLA Europe $2.74/kg, NE Asia $2.76/kg, N.America $2.64/kg.",
+          "source": "FRED/BLS WPU0662 (PPI: Thermoplastic Resins)",
+          "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WPU0662",
+          "fallback_url": "https://api.bls.gov/publicAPI/v2/timeseries/data/WPU0662",
+          "unit": "index 1982=100", "currency": "USD index", "frequency": "monthly",
+          "quirks": "~1.5-month lag; last 4 months preliminary and revisable.",
+          "points": {"2025-01": 263.763, "2025-02": 272.924, "2025-03": 275.426, "2025-04": 273.469, "2025-05": 270.092, "2025-06": 266.301, "2025-07": 266.379, "2025-08": 263.885, "2025-09": 260.671, "2025-10": 260.388, "2025-11": 258.016, "2025-12": 253.737, "2026-01": 254.169, "2026-02": 260.673, "2026-03": 266.682, "2026-04": 284.462, "2026-05": 328.121}
+        }
+      ]
+    },
+    {
+      "id": "paper",
+      "name": "Paper & pulp",
+      "series": [
+        {
+          "id": "pulp", "label": "Wood pulp (proxy)", "proxy": true,
+          "proxy_note": "US PPI index, not a market price. No free NBSK series exists (FOEX/Fastmarkets paid). China spot reference: SunSirs wood pulp 4,426.67 RMB/t on 2026-07-08 (prodetail-958, trailing week only).",
+          "source": "FRED WPU0911 (PPI: Wood Pulp)",
+          "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WPU0911",
+          "unit": "index 1982=100", "currency": "USD index", "frequency": "monthly",
+          "points": {"2025-01": 221.905, "2025-02": 219.741, "2025-03": 216.731, "2025-04": 220.088, "2025-05": 222.199, "2025-06": 223.495, "2025-07": 224.831, "2025-08": 226.231, "2025-09": 222.355, "2025-10": 215.803, "2025-11": 209.190, "2025-12": 205.046, "2026-01": 202.159, "2026-02": 199.252, "2026-03": 200.180, "2026-04": 201.453, "2026-05": 201.275}
+        },
+        {
+          "id": "pkgpaper", "label": "Packaging paper (proxy)", "proxy": true,
+          "proxy_note": "US PPI index for packaging & industrial converting paper — kraft/packaging proxy, not a market price. Sharp Apr-May 2026 jump is real in fetched data. Alt validated: WPU0914 paperboard, WPU09150301 corrugated containers.",
+          "source": "FRED WPU091303 (PPI: Packaging & Converting Paper)",
+          "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WPU091303",
+          "unit": "index 1982=100", "currency": "USD index", "frequency": "monthly",
+          "points": {"2025-01": 318.468, "2025-02": 321.297, "2025-03": 321.615, "2025-04": 323.246, "2025-05": 322.116, "2025-06": 321.073, "2025-07": 320.658, "2025-08": 323.332, "2025-09": 323.690, "2025-10": 324.255, "2025-11": 321.648, "2025-12": 322.231, "2026-01": 323.720, "2026-02": 325.074, "2026-03": 327.716, "2026-04": 338.263, "2026-05": 352.680}
+        }
+      ]
+    },
+    {
+      "id": "ingredients",
+      "name": "Toothpaste ingredients",
+      "series": [
+        {
+          "id": "glycerin", "label": "Glycerin (proxy)", "proxy": true,
+          "proxy_note": "Proxy = US PPI fatty acids (glycerin is the oleochemical co-product). Real China spot: SunSirs Glycerol 8,000 RMB/t flat 2026-07-02..08 (prodetail-1622) — free tier shows trailing week only; accumulating forward. May 2026 proxy spike (+35%) consistent with oleochemical tightness; verify next release.",
+          "source": "FRED WPU061403991 (PPI: Fatty acids)",
+          "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WPU061403991",
+          "unit": "index Dec2007=100", "currency": "USD index", "frequency": "monthly",
+          "spot": {"value": 8000, "unit": "RMB/t", "label": "China spot (SunSirs)", "url": "https://www.sunsirs.com/uk/prodetail-1622.html", "date": "2026-07-08"},
+          "quirks": "Trap: WPU06140341 is Ethanol despite glycerine-like old code — never use.",
+          "points": {"2025-01": 143.556, "2025-02": 142.929, "2025-03": 174.405, "2025-04": 180.640, "2025-05": 181.601, "2025-06": 181.134, "2025-07": 211.625, "2025-08": 214.564, "2025-09": 212.983, "2025-10": 220.088, "2025-11": 215.588, "2025-12": 216.743, "2026-01": 214.031, "2026-02": 215.392, "2026-03": 225.262, "2026-04": 227.065, "2026-05": 307.110}
+        },
+        {
+          "id": "silica", "label": "Precipitated silica (proxy)", "proxy": true,
+          "proxy_note": "Proxy = US PPI all-other-inorganic-chemicals (broad basket). Real China spot: SunSirs Silica (precipitated / white carbon black) 5,933.33 RMB/t 2026-07-03..08 (prodetail-720) — trailing week only; accumulating forward.",
+          "source": "FRED WPU061302833 (PPI: All other inorganic chemicals)",
+          "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WPU061302833",
+          "unit": "index Dec2008=100", "currency": "USD index", "frequency": "monthly",
+          "spot": {"value": 5933.33, "unit": "RMB/t", "label": "China spot (SunSirs)", "url": "https://www.sunsirs.com/uk/prodetail-720.html", "date": "2026-07-08"},
+          "points": {"2025-01": 126.637, "2025-02": 127.206, "2025-03": 127.232, "2025-04": 127.183, "2025-05": 127.620, "2025-06": 128.238, "2025-07": 129.792, "2025-08": 128.313, "2025-09": 127.984, "2025-10": 127.937, "2025-11": 128.284, "2025-12": 129.194, "2026-01": 130.604, "2026-02": 130.829, "2026-03": 130.352, "2026-04": 130.551, "2026-05": 133.924}
+        },
+        {
+          "id": "polyols", "label": "Erythritol/xylitol (weak proxy)", "proxy": true,
+          "proxy_note": "No free erythritol or xylitol series exists (not on SunSirs; Echemi/ChemAnalyst paywalled; US import prices distorted by 2025 AD/CVD duties on Chinese erythritol). Weak proxy = US PPI wet corn milling (their shared corn feedstock). Captures feedstock cost only — NOT the fermentation-capacity swings that dominate polyol pricing.",
+          "source": "FRED PCU311221311221 (PPI: Wet corn milling)",
+          "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=PCU311221311221",
+          "unit": "index", "currency": "USD index", "frequency": "monthly",
+          "points": {"2025-01": 242.711, "2025-02": 243.331, "2025-03": 243.276, "2025-04": 245.224, "2025-05": 245.526, "2025-06": 244.955, "2025-07": 248.228, "2025-08": 245.525, "2025-09": 245.499, "2025-10": 244.947, "2025-11": 240.842, "2025-12": 240.544, "2026-01": 242.782, "2026-02": 244.670, "2026-03": 248.041, "2026-04": 254.332, "2026-05": 259.321}
+        },
+        {
+          "id": "cmc", "label": "Cellulose gum / CMC (proxy)", "proxy": true,
+          "proxy_note": "Proxy = US PPI all-other-basic-organic-chemical mfg (industry basket incl. US CMC producers). Real CMC monthly USD/kg at businessanalytiq, free tier = latest month only: 2026-06 Europe $4.88/kg, N.America $4.51/kg, NE Asia $2.77/kg — polling monthly forward.",
+          "source": "FRED PCU325199325199 (PPI: Other basic organic chemical mfg)",
+          "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=PCU325199325199",
+          "unit": "index", "currency": "USD index", "frequency": "monthly",
+          "spot": {"value": 4.88, "unit": "USD/kg Europe", "label": "businessanalytiq CMC", "url": "https://businessanalytiq.com/procurementanalytics/index/carboxymethyl-cellulose-price-index/", "date": "2026-06"},
+          "points": {"2025-01": 230.190, "2025-02": 232.078, "2025-03": 235.182, "2025-04": 234.741, "2025-05": 234.242, "2025-06": 236.712, "2025-07": 235.749, "2025-08": 236.883, "2025-09": 237.865, "2025-10": 236.774, "2025-11": 235.154, "2025-12": 237.277, "2026-01": 237.013, "2026-02": 240.158, "2026-03": 238.797, "2026-04": 241.768, "2026-05": 248.071}
+        }
+      ]
+    },
+    {
+      "id": "freight",
+      "name": "Container freight",
+      "series": [
+        {
+          "id": "fbx11", "label": "China→N.Europe 40ft", "proxy": false,
+          "source": "Freightos FBX11",
+          "url": "https://www.freightos.com/enterprise/terminal/fbx-11-china-to-northern-europe/",
+          "unit": "USD/FEU", "currency": "USD", "frequency": "weekly (free history is irregular, via dated weekly blog posts)",
+          "quirks": "Lane page JS-rendered but headline value IS in fetchable HTML. History: freightos.com weekly-freight-updates posts (dated slugs, title-prefixed after ~Apr 2025). Sweden proxy = North Europe base ports.",
+          "points": {"2025-01-07": 5558, "2025-01-14": 5640, "2025-01-28": 4122, "2025-02-25": 2954, "2025-03-25": 2565, "2025-06-12": 2757, "2025-09-04": 2464, "2025-09-10": 2540, "2025-10-22": 1975, "2025-12-30": 2742, "2026-01-06": 3000, "2026-01-13": 2978, "2026-04-07": 2922, "2026-05-05": 2589, "2026-07-08": 5383.8}
+        },
+        {
+          "id": "fbx01", "label": "China→US West Coast 40ft", "proxy": false,
+          "source": "Freightos FBX01",
+          "url": "https://www.freightos.com/enterprise/terminal/fbx-01-china-to-north-america-west-coast/",
+          "unit": "USD/FEU", "currency": "USD", "frequency": "weekly (free history irregular)",
+          "points": {"2025-01-07": 5929, "2025-01-14": 5924, "2025-01-28": 4938, "2025-02-25": 4362, "2025-03-25": 2238, "2025-06-12": 5488, "2025-09-04": 2096, "2025-09-10": 2163, "2025-10-22": 1687, "2025-12-30": 2145, "2026-01-06": 2617, "2026-01-13": 2757, "2026-04-07": 2420, "2026-05-05": 2725, "2026-07-08": 6687.4}
+        },
+        {
+          "id": "scfi-eu", "label": "China→N.Europe 20ft (SCFI)", "proxy": false,
+          "source": "SCFI Europe base ports (via DB Schenker PDF + weekly news reporting)",
+          "url": "https://www.dbschenker.com/resource/blob/1826644/782b13d46e9c2ace38636f4311aea651/scfi-overview-kw-data.pdf",
+          "unit": "USD/TEU", "currency": "USD", "frequency": "weekly (Friday)",
+          "quirks": "Genuine per-TEU (20ft) quoted lane — the only real free 20ft series. Official sse.net.cn renders values as image only. Schenker PDF stale after CW29/2025; later points from weekly news (SunSirs/SDI/container-news). Aug-Nov 2025 gap not freely recoverable — line is broken there deliberately.",
+          "points": {"2025-01-03": 2962, "2025-01-10": 2851, "2025-01-17": 2440, "2025-01-24": 2279, "2025-01-31": 2147, "2025-02-07": 2147, "2025-02-14": 1805, "2025-02-21": 1608, "2025-02-28": 1578, "2025-03-07": 1693, "2025-03-14": 1582, "2025-03-21": 1342, "2025-03-28": 1306, "2025-04-04": 1318, "2025-04-11": 1336, "2025-04-18": 1356, "2025-04-25": 1316, "2025-05-02": 1260, "2025-05-09": 1200, "2025-05-16": 1161, "2025-05-23": 1154, "2025-05-30": 1317, "2025-06-06": 1587, "2025-06-13": 1667, "2025-06-20": 1844, "2025-06-27": 1835, "2025-07-04": 2030, "2025-07-11": 2101, "2025-07-18": 2099, "2025-12-12": 1538, "2026-07-03": 3418}
+        }
+      ]
+    }
+  ],
+  "gaps": [
+    {"id": "uswc-20ft", "name": "China→US West Coast 20ft", "reason": "No free per-TEU spot series exists for this lane: SCFI's USWC lane is itself quoted per-FEU, and FBX and Drewry are FEU-only. A 20ft number would require an unsourced conversion factor, so it is shown as a gap rather than invented. Directional read: use the 40ft (FBX01) line."},
+    {"id": "aloe", "name": "Aloe vera extract", "reason": "No free source found and no defensible proxy: agricultural botanical priced off Indian/Mexican crop conditions; ChemAnalyst index is paywalled; only stray press snapshots exist (~USD 18,800/MT, India, Q3 2025 — single point, not a series)."}
+  ],
+  "secondary_sources": {
+    "drewry_wci": {"url": "https://www.drewry.co.uk/supply-chain-advisors/supply-chain-expertise/world-container-index-assessed-by-drewry", "note": "Latest week fetchable free: 2026-07-02 composite $4,530/FEU, Shanghai→Rotterdam $4,682, Shanghai→LA $6,349. History via container-news.com weekly articles.", "unit": "USD/FEU"},
+    "scfi_uswc_feu": {"points": {"2025-12-12": 1780, "2026-07-03": 6630}, "unit": "USD/FEU", "note": "SCFI USWC lane, per-FEU — cross-check for FBX01."},
+    "stainless_scrap_alt": {"id": "WPU101212", "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WPU101212", "points": {"2025-01": 436.406, "2025-02": 436.044, "2025-03": 432.729, "2025-04": 415.492, "2025-05": 441.083, "2025-06": 427.755, "2025-07": 415.213, "2025-08": 418.754, "2025-09": 424.133, "2025-10": 410.218, "2025-11": 385.656, "2025-12": 371.935, "2026-01": 411.027, "2026-02": 439.664, "2026-03": 458.274, "2026-04": 483.967, "2026-05": 487.975}, "note": "Stainless & alloy steel scrap PPI — alternate stainless proxy, nickel-heavy."},
+    "sunsirs_pulp_spot": {"url": "https://www.sunsirs.com/uk/prodetail-958.html", "points": {"2026-07-08": 4426.67}, "unit": "RMB/t"},
+    "sunsirs_lldpe": {"url": "https://www.sunsirs.com/uk/prodetail-435.html", "points": {"2025-01": 8430, "2026-06": 7300}, "unit": "RMB/t", "note": "LLDPE also free on SunSirs monthly pages if wanted."}
+  },
+  "lessons": [
+    "FRED keyless CSV: https://fred.stlouisfed.org/graph/fredgraph.csv?id=SERIESID — no auth; validate response starts with 'observation_date' (invalid IDs return HTML bot page). Worked via curl even when WebFetch got 403 — prefer curl.",
+    "BLS API v2 keyless fallback for any WPU/PCU series: https://api.bls.gov/publicAPI/v2/timeseries/data/SERIESID (last ~3yr, 25 queries/day).",
+    "SunSirs anti-bot: first GET (browser UA) returns inline JS setting HW_CHECK cookie (32-hex in response); replay with Cookie: HW_CHECK=<value>. Monthly history pages: /uk/sdetail-month-YYYY-MM.html (~440 commodities, month start/end). Product spot pages show trailing ~7 days only.",
+    "SunSirs glycerol/silica are NOT on the monthly summary pages — spot pages only; accumulate weekly.",
+    "FBX: fbx.freightos.com 301s to freightos.com/enterprise/terminal/; headline $ is in raw HTML despite JS chrome; weekly history via freightos.com weekly-freight-updates blog posts (find by search — slugs gained title prefix ~Apr 2025).",
+    "SCFI official page (en.sse.net.cn) is image-only; DB Schenker scfi-overview-kw-data.pdf has weekly EU+Med USD/TEU but went stale after CW29/2025; use weekly news reporting (SunSirs news, container-news, gcaptain; AJOT 403s).",
+    "World Bank Pink Sheet Woodpulp is discontinued (Description sheet only) — do not use.",
+    "Trap: WPU06140341 is Ethanol, not glycerine. WPU101707 is carbon steel, not stainless. WPU10170502 (stainless wire) discontinued 2023.",
+    "No PP/PE-specific PPI sub-series exist anymore — WPU0662 is finest free US resin granularity.",
+    "FRED PPI/IMF data lag: as of 2026-07-08 latest month is 2026-05."
+  ]
+}
+</script>
+
+<style>
+  :root {
+    --surface-1: #fcfcfb; --page: #f9f9f7;
+    --ink-1: #0b0b0b; --ink-2: #52514e; --ink-3: #898781;
+    --grid: #e1e0d9; --baseline: #c3c2b7; --border: rgba(11,11,11,0.10);
+    --s1: #2a78d6; --s2: #1baf7a; --s3: #eda100; --s4: #008300;
+    --up-bad: #d03b3b; --down-good: #006300;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface-1: #1a1a19; --page: #0d0d0d;
+      --ink-1: #ffffff; --ink-2: #c3c2b7; --ink-3: #898781;
+      --grid: #2c2c2a; --baseline: #383835; --border: rgba(255,255,255,0.10);
+      --s1: #3987e5; --s2: #199e70; --s3: #c98500; --s4: #008300;
+      --up-bad: #e66767; --down-good: #0ca30c;
+    }
+  }
+  :root[data-theme="light"] {
+    --surface-1: #fcfcfb; --page: #f9f9f7;
+    --ink-1: #0b0b0b; --ink-2: #52514e; --ink-3: #898781;
+    --grid: #e1e0d9; --baseline: #c3c2b7; --border: rgba(11,11,11,0.10);
+    --s1: #2a78d6; --s2: #1baf7a; --s3: #eda100; --s4: #008300;
+    --up-bad: #d03b3b; --down-good: #006300;
+  }
+  :root[data-theme="dark"] {
+    --surface-1: #1a1a19; --page: #0d0d0d;
+    --ink-1: #ffffff; --ink-2: #c3c2b7; --ink-3: #898781;
+    --grid: #2c2c2a; --baseline: #383835; --border: rgba(255,255,255,0.10);
+    --s1: #3987e5; --s2: #199e70; --s3: #c98500; --s4: #008300;
+    --up-bad: #e66767; --down-good: #0ca30c;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--page); color: var(--ink-1); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; margin: 0; padding: 24px 20px 60px; }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  header h1 { font-size: 26px; margin: 0 0 4px; font-weight: 700; }
+  header .sub { color: var(--ink-2); font-size: 14px; margin: 0 0 6px; }
+  header .meta { color: var(--ink-3); font-size: 12.5px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(460px, 1fr)); gap: 18px; margin-top: 22px; }
+  @media (max-width: 540px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 16px 16px 10px; }
+  .card h2 { font-size: 15px; margin: 0 0 2px; font-weight: 650; }
+  .card .basenote { font-size: 11.5px; color: var(--ink-3); margin-bottom: 8px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 6px 0 4px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-2); }
+  .chip { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+  .ptag { font-size: 10px; color: var(--ink-3); border: 1px solid var(--border); border-radius: 4px; padding: 0 4px; }
+  .chartbox { position: relative; }
+  svg text { font-family: inherit; }
+  .tip { position: absolute; pointer-events: none; background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 14px rgba(0,0,0,.13); padding: 8px 10px; font-size: 12px; display: none; z-index: 5; min-width: 150px; }
+  .tip .tdate { color: var(--ink-3); font-size: 11px; margin-bottom: 4px; }
+  .tip .trow { display: flex; align-items: center; gap: 6px; margin: 2px 0; color: var(--ink-2); }
+  .tip .trow b { color: var(--ink-1); font-weight: 600; margin-left: auto; padding-left: 10px; font-variant-numeric: tabular-nums; }
+  .spots { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+  .spots a { font-size: 11.5px; color: var(--ink-2); text-decoration: none; border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px; }
+  .spots a b { color: var(--ink-1); }
+  section.block { margin-top: 34px; }
+  section.block h2 { font-size: 18px; margin: 0 0 10px; }
+  .tablewrap { overflow-x: auto; background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; min-width: 860px; }
+  th { text-align: left; color: var(--ink-3); font-weight: 600; font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; padding: 10px 12px; border-bottom: 1px solid var(--grid); }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--grid); color: var(--ink-2); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td.num { font-variant-numeric: tabular-nums; color: var(--ink-1); font-weight: 600; white-space: nowrap; }
+  td .small { color: var(--ink-3); font-size: 11.5px; display: block; }
+  .delta-up { color: var(--up-bad); font-weight: 600; white-space: nowrap; }
+  .delta-down { color: var(--down-good); font-weight: 600; white-space: nowrap; }
+  .delta-na { color: var(--ink-3); }
+  td a { color: inherit; }
+  .badge { display: inline-block; font-size: 10.5px; border-radius: 5px; padding: 1px 6px; border: 1px solid var(--border); color: var(--ink-3); }
+  .badge.live { color: var(--down-good); border-color: currentColor; }
+  .gapcard { background: var(--surface-1); border: 1px dashed var(--baseline); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; }
+  .gapcard b { font-size: 14px; }
+  .gapcard p { margin: 4px 0 0; font-size: 13px; color: var(--ink-2); }
+  .notes { font-size: 13px; color: var(--ink-2); line-height: 1.55; }
+  .notes li { margin-bottom: 5px; }
+  footer { margin-top: 40px; font-size: 12px; color: var(--ink-3); line-height: 1.6; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>The Humble Co. Price Index</h1>
+    <p class="sub">Key input costs, indexed to <b>Jan 2025 = 100</b> — for timing purchases and challenging supplier quotes. Free public sources only; proxies are labeled and never presented as the real thing.</p>
+    <p class="meta" id="hdr-meta"></p>
+  </header>
+
+  <div class="grid" id="charts"></div>
+
+  <section class="block">
+    <h2>Latest prices — all series</h2>
+    <div class="tablewrap"><table id="ptable">
+      <thead><tr><th>Series</th><th>Type</th><th>Latest</th><th>As of</th><th>Δ prev obs</th><th>Δ year-on-year</th><th>Source</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </section>
+
+  <section class="block">
+    <h2>No free source found</h2>
+    <div id="gaps"></div>
+  </section>
+
+  <section class="block">
+    <h2>Reading notes</h2>
+    <ul class="notes">
+      <li><b>Proxies are dashed lines.</b> A PPI proxy is a US producer-price <i>index</i> tracking the cost family, not a quoted market price for your grade — use it for direction and timing, not for absolute price checks.</li>
+      <li><b>Plastics are China domestic spot (CNY/t)</b> from SunSirs — closest to what your China-side suppliers actually pay. The Mar 2026 polymer spike is real (mirrored, lagged, in the US PPI).</li>
+      <li><b>Freight "Sweden" = China→North Europe base ports.</b> The 20ft Europe line is genuine per-TEU data (SCFI); its Aug–Nov 2025 gap is a data-availability gap, deliberately left broken rather than interpolated. FBX free history is irregular (weekly blog posts) — it densifies as weekly refreshes accumulate.</li>
+      <li><b>FRED/PPI series lag ~1–2 months</b> (latest observation May 2026 as of the 2026-07-08 build); recent PPI months are preliminary and can be revised.</li>
+      <li>Every value on this page was fetched from its named source on the retrieval date recorded in the embedded database — no interpolated or estimated points anywhere.</li>
+    </ul>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+(function () {
+  var DB = JSON.parse(document.getElementById('price-db').textContent);
+  var COLORS = ['var(--s1)', 'var(--s2)', 'var(--s3)', 'var(--s4)'];
+
+  function pDate(k) { // "YYYY-MM" -> mid-month; "YYYY-MM-DD" -> exact
+    var p = k.split('-');
+    return p.length === 2 ? new Date(+p[0], +p[1] - 1, 15) : new Date(+p[0], +p[1] - 1, +p[2]);
+  }
+  function fmtD(d) { return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); }
+  function fmtK(k) { var p = k.split('-'); return p.length === 2 ? new Date(+p[0], +p[1]-1, 1).toLocaleDateString('en-GB',{month:'short',year:'numeric'}) : fmtD(pDate(k)); }
+  function fmtV(v) { return v >= 1000 ? v.toLocaleString('en-US', { maximumFractionDigits: 0 }) : v.toLocaleString('en-US', { maximumFractionDigits: 2 }); }
+  function pts(s) {
+    return Object.keys(s.points).sort().map(function (k) { return { k: k, d: pDate(k), v: s.points[k] }; });
+  }
+
+  // header + footer
+  document.getElementById('hdr-meta').textContent =
+    'Data retrieved ' + fmtD(pDate(DB.last_refresh)) + ' · refreshes weekly, Mondays 07:00 (Stockholm) · v' + DB.version +
+    ' · history since Jan 2025 embedded in this file';
+  document.getElementById('foot').innerHTML =
+    'Sources: FRED/BLS (keyless CSV & API), SunSirs (China spot), Freightos FBX, SCFI via DB Schenker & weekly trade press, Drewry WCI (cross-check), businessanalytiq (single-month reference). ' +
+    'The full per-point database, source URLs, retrieval dates, refresh protocol and accumulated source lessons are embedded in this HTML file (<code>&lt;script id="price-db"&gt;</code>) — the file is its own database and works offline.';
+
+  // ---- charts ----
+  var W = 720, H = 300, M = { t: 14, r: 118, b: 30, l: 40 };
+  DB.families.forEach(function (fam) {
+    var card = document.createElement('div');
+    card.className = 'card';
+    var laterBase = fam.series.filter(function (s) { return pts(s)[0].k > '2025-01-31'; });
+    card.innerHTML = '<h2>' + fam.name + '</h2><div class="basenote">Indexed, first observation = 100' +
+      (laterBase.length ? ' (' + laterBase.map(function(s){return s.label;}).join(', ') + ' base later than Jan 2025)' : ' (Jan 2025)') +
+      ' · dashed = labeled proxy</div>';
+
+    var legend = document.createElement('div'); legend.className = 'legend';
+    fam.series.forEach(function (s, i) {
+      var el = document.createElement('span');
+      el.innerHTML = '<i class="chip" style="background:' + COLORS[i] + '"></i>' + s.label +
+        (s.proxy ? ' <i class="ptag">proxy</i>' : '');
+      legend.appendChild(el);
+    });
+    card.appendChild(legend);
+
+    var box = document.createElement('div'); box.className = 'chartbox';
+    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    svg.style.width = '100%'; svg.style.display = 'block';
+
+    var data = fam.series.map(function (s) {
+      var p = pts(s), base = p[0].v;
+      return { s: s, p: p.map(function (q) { return { k: q.k, d: q.d, v: q.v, idx: 100 * q.v / base }; }) };
+    });
+    var allD = [], allI = [100];
+    data.forEach(function (d) { d.p.forEach(function (q) { allD.push(q.d); allI.push(q.idx); }); });
+    var x0 = Math.min.apply(null, allD), x1 = Math.max.apply(null, allD);
+    var iMin = Math.min.apply(null, allI), iMax = Math.max.apply(null, allI);
+    var pad = (iMax - iMin) * 0.08 || 5; iMin -= pad; iMax += pad;
+    function X(d) { return M.l + (d - x0) / (x1 - x0) * (W - M.l - M.r); }
+    function Y(i) { return M.t + (iMax - i) / (iMax - iMin) * (H - M.t - M.b); }
+
+    var g = '';
+    // y grid: ~5 ticks
+    var step = Math.pow(10, Math.floor(Math.log10((iMax - iMin) / 4)));
+    if ((iMax - iMin) / step > 8) step *= 2;
+    if ((iMax - iMin) / step > 8) step *= 2.5;
+    for (var t = Math.ceil(iMin / step) * step; t <= iMax; t += step) {
+      g += '<line x1="' + M.l + '" x2="' + (W - M.r) + '" y1="' + Y(t) + '" y2="' + Y(t) + '" stroke="var(--grid)" stroke-width="1"/>' +
+           '<text x="' + (M.l - 6) + '" y="' + (Y(t) + 3.5) + '" text-anchor="end" font-size="10" fill="var(--ink-3)" style="font-variant-numeric:tabular-nums">' + Math.round(t) + '</text>';
+    }
+    // baseline 100
+    if (100 >= iMin && 100 <= iMax)
+      g += '<line x1="' + M.l + '" x2="' + (W - M.r) + '" y1="' + Y(100) + '" y2="' + Y(100) + '" stroke="var(--baseline)" stroke-width="1.4"/>';
+    // x ticks: Jan/Jul
+    [new Date(2025,0,15), new Date(2025,6,15), new Date(2026,0,15), new Date(2026,6,15)].forEach(function (d) {
+      if (d >= x0 && d <= x1)
+        g += '<text x="' + X(d) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="10" fill="var(--ink-3)">' +
+             d.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' }) + '</text>';
+    });
+    // series paths (break on gaps > 90 days)
+    data.forEach(function (d, i) {
+      var path = '', prev = null;
+      d.p.forEach(function (q) {
+        var cmd = (!prev || (q.d - prev) / 864e5 > 90) ? 'M' : 'L';
+        path += cmd + X(q.d).toFixed(1) + ' ' + Y(q.idx).toFixed(1) + ' ';
+        prev = q.d;
+      });
+      g += '<path d="' + path + '" fill="none" stroke="' + COLORS[i] + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"' +
+           (d.s.proxy ? ' stroke-dasharray="5 3"' : '') + '/>';
+      var last = d.p[d.p.length - 1];
+      g += '<circle cx="' + X(last.d) + '" cy="' + Y(last.idx) + '" r="3" fill="' + COLORS[i] + '" stroke="var(--surface-1)" stroke-width="2"/>';
+    });
+    // endpoint direct labels, collision-nudged
+    var labels = data.map(function (d, i) {
+      var last = d.p[d.p.length - 1];
+      return { y: Y(last.idx), txt: Math.round(last.idx), i: i };
+    }).sort(function (a, b) { return a.y - b.y; });
+    for (var li = 1; li < labels.length; li++)
+      if (labels[li].y - labels[li - 1].y < 13) labels[li].y = labels[li - 1].y + 13;
+    labels.forEach(function (L) {
+      g += '<text x="' + (W - M.r + 8) + '" y="' + (L.y + 3.5) + '" font-size="11" font-weight="600" fill="var(--ink-1)" style="font-variant-numeric:tabular-nums">' + L.txt +
+           '</text><rect x="' + (W - M.r + 30) + '" y="' + (L.y - 4) + '" width="8" height="8" rx="2" fill="' + COLORS[L.i] + '"/>';
+    });
+    svg.innerHTML = g;
+
+    // crosshair + tooltip
+    var cross = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    cross.setAttribute('stroke', 'var(--baseline)'); cross.setAttribute('stroke-width', '1');
+    cross.setAttribute('y1', M.t); cross.setAttribute('y2', H - M.b); cross.style.display = 'none';
+    svg.appendChild(cross);
+    var tip = document.createElement('div'); tip.className = 'tip';
+    box.appendChild(svg); box.appendChild(tip); card.appendChild(box);
+
+    svg.addEventListener('mousemove', function (ev) {
+      var r = svg.getBoundingClientRect();
+      var mx = (ev.clientX - r.left) * W / r.width;
+      if (mx < M.l || mx > W - M.r) { cross.style.display = 'none'; tip.style.display = 'none'; return; }
+      var md = new Date(+x0 + (mx - M.l) / (W - M.l - M.r) * (x1 - x0));
+      var rows = '', snapX = null, snapD = null;
+      data.forEach(function (d, i) {
+        var best = null, bd = Infinity;
+        d.p.forEach(function (q) { var dd = Math.abs(q.d - md); if (dd < bd) { bd = dd; best = q; } });
+        if (!best || bd > 45 * 864e5) return;
+        if (snapX === null) { snapX = X(best.d); snapD = best; }
+        rows += '<div class="trow"><i class="chip" style="background:' + COLORS[i] + '"></i>' + d.s.label +
+                '<b>' + Math.round(best.idx) + ' · ' + fmtV(best.v) + '</b></div>';
+      });
+      if (!rows) { cross.style.display = 'none'; tip.style.display = 'none'; return; }
+      cross.setAttribute('x1', snapX); cross.setAttribute('x2', snapX); cross.style.display = '';
+      tip.innerHTML = '<div class="tdate">' + fmtK(snapD.k) + ' — index · absolute</div>' + rows;
+      tip.style.display = 'block';
+      var px = snapX * r.width / W;
+      tip.style.left = Math.min(px + 14, r.width - tip.offsetWidth - 6) + 'px';
+      tip.style.top = '18px';
+    });
+    svg.addEventListener('mouseleave', function () { cross.style.display = 'none'; tip.style.display = 'none'; });
+
+    // spot chips
+    var spots = fam.series.filter(function (s) { return s.spot; });
+    if (spots.length) {
+      var sd = document.createElement('div'); sd.className = 'spots';
+      spots.forEach(function (s) {
+        var a = document.createElement('a'); a.href = s.spot.url; a.target = '_blank'; a.rel = 'noopener';
+        a.innerHTML = s.label.replace(/ \(.*\)/, '') + ' spot: <b>' + fmtV(s.spot.value) + ' ' + s.spot.unit + '</b> · ' + s.spot.label + ' · ' + s.spot.date;
+        sd.appendChild(a);
+      });
+      card.appendChild(sd);
+    }
+    document.getElementById('charts').appendChild(card);
+  });
+
+  // ---- table ----
+  var tb = document.querySelector('#ptable tbody');
+  DB.families.forEach(function (fam) {
+    fam.series.forEach(function (s) {
+      var p = pts(s), last = p[p.length - 1], prev = p[p.length - 2];
+      // YoY: nearest point to (last - 1yr), within 45 days
+      var tgt = new Date(last.d); tgt.setFullYear(tgt.getFullYear() - 1);
+      var yoy = null, bd = Infinity;
+      p.forEach(function (q) { var dd = Math.abs(q.d - tgt); if (dd < bd) { bd = dd; yoy = q; } });
+      if (bd > 45 * 864e5) yoy = null;
+      function dcell(from, label) {
+        if (!from) return '<span class="delta-na">n/a</span>';
+        var pc = 100 * (last.v - from.v) / from.v;
+        var cls = pc > 0.05 ? 'delta-up' : (pc < -0.05 ? 'delta-down' : 'delta-na');
+        var arrow = pc > 0.05 ? '▲' : (pc < -0.05 ? '▼' : '·');
+        return '<span class="' + cls + '" title="vs ' + fmtK(from.k) + '">' + arrow + ' ' + Math.abs(pc).toFixed(1) + '%</span>' +
+               '<span class="small">vs ' + fmtK(from.k) + '</span>';
+      }
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td><b style="color:var(--ink-1)">' + s.label + '</b><span class="small">' + fam.name + '</span></td>' +
+        '<td>' + (s.proxy ? '<span class="badge" title="' + (s.proxy_note || '').replace(/"/g, '&quot;') + '">proxy</span>' : '<span class="badge live">live price</span>') + '</td>' +
+        '<td class="num">' + fmtV(last.v) + '<span class="small">' + s.unit + '</span></td>' +
+        '<td>' + fmtK(last.k) + '<span class="small">' + s.frequency.split(' ')[0] + '</span></td>' +
+        '<td>' + dcell(prev) + '</td>' +
+        '<td>' + dcell(yoy) + '</td>' +
+        '<td><a href="' + s.url + '" target="_blank" rel="noopener">' + s.source + '</a></td>';
+      tb.appendChild(tr);
+    });
+  });
+
+  // ---- gaps ----
+  var gd = document.getElementById('gaps');
+  DB.gaps.forEach(function (gp) {
+    var d = document.createElement('div'); d.className = 'gapcard';
+    d.innerHTML = '<b>' + gp.name + '</b><p>' + gp.reason + '</p>';
+    gd.appendChild(d);
+  });
+})();
+</script>
+
+</body>
+</html>
