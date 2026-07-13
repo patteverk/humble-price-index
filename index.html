@@ -9,9 +9,9 @@
 <script type="application/json" id="price-db">
 {
   "artifact_id": "humble-price-index",
-  "version": 2,
+  "version": 3,
   "created": "2026-07-08",
-  "last_refresh": "2026-07-09",
+  "last_refresh": "2026-07-13",
   "base_month": "2025-01",
   "refresh_protocol": {
     "cadence": "weekly, Monday 07:00 Europe/Stockholm",
@@ -26,7 +26,8 @@
   },
   "run_log": [
     {"date": "2026-07-08", "note": "Initial build. 5 scout agents validated all sources with live fetches. FRED data through May 2026; SunSirs through Jul 2026; freight through 2026-07-08."},
-    {"date": "2026-07-09", "note": "Added Femcare materials family: cotton (PCOTTINDUSDM, live), SAP/PBAT petro proxy (POILBREUSDM Brent), hot-melt adhesive proxy (PCU325520325520), CaCO3 proxy (WPU13940113 ground limestone). All validated with live fetches, data through 2026-05. Other femcare layers map to existing pulp/paper/PLA/freight series."}
+    {"date": "2026-07-09", "note": "Added Femcare materials family: cotton (PCOTTINDUSDM, live), SAP/PBAT petro proxy (POILBREUSDM Brent), hot-melt adhesive proxy (PCU325520325520), CaCO3 proxy (WPU13940113 ground limestone). All validated with live fetches, data through 2026-05. Other femcare layers map to existing pulp/paper/PLA/freight series."},
+    {"date": "2026-07-13", "note": "Refresh BLOCKED at the network layer, not attempted-and-failed per source: this session's egress policy returned 403 policy-denial for every external host tested (curl AND the WebFetch tool both failed) — fred.stlouisfed.org, api.bls.gov, www.sunsirs.com, www.freightos.com, www.dbschenker.com, businessanalytiq.com, container-news.com all rejected at the CONNECT tunnel (confirmed via the proxy status endpoint: 'gateway answered 403 to CONNECT'). Only WebSearch (Anthropic-hosted) and GitHub were reachable. Did not substitute WebSearch snippets for direct source data (e.g. LME/tradingeconomics spot quotes are a different metric/basis than the IMF PALUMUSDM monthly average this series tracks) to avoid corrupting the indexed history. No points appended, no revisions made, no series changed — every existing value is untouched. Version bumped and last_refresh updated only to record that a refresh was attempted this week and blocked; see lessons[] for the diagnostic and fix for next run."}
   ],
   "families": [
     {
@@ -256,7 +257,8 @@
     "World Bank Pink Sheet Woodpulp is discontinued (Description sheet only) — do not use.",
     "Trap: WPU06140341 is Ethanol, not glycerine. WPU101707 is carbon steel, not stainless. WPU10170502 (stainless wire) discontinued 2023.",
     "No PP/PE-specific PPI sub-series exist anymore — WPU0662 is finest free US resin granularity.",
-    "FRED PPI/IMF data lag: as of 2026-07-08 latest month is 2026-05."
+    "FRED PPI/IMF data lag: as of 2026-07-08 latest month is 2026-05.",
+    "2026-07-13: this session's environment network policy blocks general web egress entirely — curl and the WebFetch tool both return 403 'policy denial' at the CONNECT tunnel for every external host tried, including fred.stlouisfed.org, sunsirs.com, freightos.com, api.bls.gov, businessanalytiq.com, dbschenker.com, container-news.com. Only WebSearch (Anthropic-hosted, separate network path) and GitHub (via its own local proxy) were reachable. Before starting a refresh, sanity-check egress first: `curl -sS -o /dev/null -w '%{http_code}' https://fred.stlouisfed.org` — a CONNECT/403 failure here (check `curl -sS http://127.0.0.1:43427/__agentproxy/status` for confirmation) means this run's environment lacks the network policy needed for any series update; stop and report rather than proceeding. Do NOT substitute WebSearch result snippets for the defined source fetches — search-surfaced prices (e.g. LME spot via tradingeconomics/kitco) use a different metric/basis than the series' actual tracked source (IMF monthly average, SunSirs benchmark, exact FBX/SCFI headline) and splicing them in would silently corrupt the indexed trend rather than extend it."
   ]
 }
 </script>
