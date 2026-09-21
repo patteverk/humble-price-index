@@ -9,9 +9,9 @@
 <script type="application/json" id="price-db">
 {
   "artifact_id": "humble-price-index",
-  "version": 12,
+  "version": 13,
   "created": "2026-07-08",
-  "last_refresh": "2026-09-14",
+  "last_refresh": "2026-09-21",
   "base_month": "2025-01",
   "refresh_protocol": {
     "cadence": "weekly, Monday 07:00 Europe/Stockholm",
@@ -25,18 +25,58 @@
     ]
   },
   "run_log": [
-    {"date": "2026-07-08", "note": "Initial build. 5 scout agents validated all sources with live fetches. FRED data through May 2026; SunSirs through Jul 2026; freight through 2026-07-08."},
-    {"date": "2026-07-09", "note": "Added Femcare materials family: cotton (PCOTTINDUSDM, live), SAP/PBAT petro proxy (POILBREUSDM Brent), hot-melt adhesive proxy (PCU325520325520), CaCO3 proxy (WPU13940113 ground limestone). All validated with live fetches, data through 2026-05. Other femcare layers map to existing pulp/paper/PLA/freight series."},
-    {"date": "2026-07-13", "note": "Refresh BLOCKED at the network layer, not attempted-and-failed per source: this session's egress policy returned 403 policy-denial for every external host tested (curl AND the WebFetch tool both failed) — fred.stlouisfed.org, api.bls.gov, www.sunsirs.com, www.freightos.com, www.dbschenker.com, businessanalytiq.com, container-news.com all rejected at the CONNECT tunnel (confirmed via the proxy status endpoint: 'gateway answered 403 to CONNECT'). Only WebSearch (Anthropic-hosted) and GitHub were reachable. Did not substitute WebSearch snippets for direct source data (e.g. LME/tradingeconomics spot quotes are a different metric/basis than the IMF PALUMUSDM monthly average this series tracks) to avoid corrupting the indexed history. No points appended, no revisions made, no series changed — every existing value is untouched. Version bumped and last_refresh updated only to record that a refresh was attempted this week and blocked; see lessons[] for the diagnostic and fix for next run."},
-    {"date": "2026-07-20", "note": "Refresh BLOCKED again, same failure mode as 2026-07-13: curl and WebFetch both got 403 policy-denial on the CONNECT tunnel for every host tried this session, including non-source control hosts (example.com, www.google.com, en.wikipedia.org) alongside all real sources (fred.stlouisfed.org, www.sunsirs.com, www.freightos.com, api.bls.gov, businessanalytiq.com) — confirms this is a total environment-wide egress block, not a per-source policy denial. Only WebSearch and GitHub reachable. Used WebSearch (per the SCFI recipe's own news-reporting fallback) to check two things: (1) Drewry WCI — got a clean single-source dated figure (2026-07-16: composite $4,547/FEU, Shanghai→Rotterdam $4,873/FEU) and refreshed secondary_sources.drewry_wci.note only, a non-indexed cross-check field, not a plotted series; (2) SCFI Europe — a SunSirs news snippet quoted 'Far East to Europe' spot ~$1,521/TEU (dated late Apr 2026 in the article) which is ~2.2x off the series' own 2026-07-03 point (3418 USD/TEU), indicating a different metric/basket, not the SCFI 20ft Europe base-port headline this series tracks — declined to splice it in. No points appended or changed in any core plotted series. Version bumped and last_refresh updated only to record this attempt; see lessons[] for the new SCFI/SunSirs-snippet trap and the escalation note."},
-    {"date": "2026-07-27", "note": "Refresh BLOCKED a THIRD consecutive week, identical failure mode: curl and the WebFetch tool both got 403 policy-denial on the CONNECT tunnel for every host tested this session — fred.stlouisfed.org, www.sunsirs.com, www.freightos.com, api.bls.gov, drewry.co.uk, and non-source control hosts example.com, www.google.com, en.wikipedia.org. Confirmed via the agent-proxy status endpoint (recentRelayFailures: connect_rejected, 'gateway answered 403 to CONNECT', host fred.stlouisfed.org:443). WebFetch itself (Anthropic-hosted tool, tested directly on fred.stlouisfed.org and drewry.co.uk) is also blocked this way — only WebSearch's own internal snippet path is reachable, not general page fetches. Used WebSearch for two checks per protocol: (1) Drewry WCI cross-check — got a dated figure (~week of 2026-07-23: Shanghai→Rotterdam $4,824/FEU, -1% w/w) and refreshed secondary_sources.drewry_wci.note only (non-indexed field); (2) SCFI Europe — search only surfaced stale Feb/Mar/Apr 2026 Far East→Europe TEU figures with no current-week number attributable specifically to SCFI, so declined to append, consistent with the 2026-07-20 lesson on search-snippet basis mismatches. No points appended or changed in any core plotted series; every existing value remains untouched. Version bumped and last_refresh updated only to record this attempt. This makes 3 of the last 3 weekly runs fully blocked at the network-policy layer — see lessons[] for the escalation recommendation."},
-    {"date": "2026-08-03", "note": "Refresh BLOCKED a FOURTH consecutive week, identical failure mode: curl and the WebFetch tool both got 403 policy-denial on the CONNECT tunnel for every host tested (fred.stlouisfed.org, www.sunsirs.com, www.freightos.com, api.bls.gov, and non-source control example.com) — confirmed via the agent-proxy status endpoint (port now 40427; enabled:true but every external CONNECT still 403s). Only WebSearch reachable. Used WebSearch for the two permitted cross-checks: (1) Drewry WCI — search surfaced the same week-30-2026 reading already captured last run (composite $4,374/FEU -4% w/w; Shanghai→Rotterdam $4,824/FEU -1% w/w) plus no newer week (31/32) published yet by the recap sources searched — refreshed secondary_sources.drewry_wci.note only (non-indexed field) with the cleaner attribution, no new information gained; (2) SCFI Europe — search only surfaced carrier FAK/posted-rate figures (CMA CGM $3,700/20ft FAK, MSC $7,800/FEU Aug hike, 'Shanghai-North Europe $3,500-4,500/40HQ' range) none explicitly attributed to a named-week SCFI print, so declined to append per the 2026-07-20 basis-mismatch lesson. No points appended or changed in any of the 19 core plotted series across all six families; every existing value remains untouched. Version bumped and last_refresh updated only to record this attempt. This is now 4 of the last 4 weekly runs fully blocked at the network-policy layer — flagged directly to the user this time (not just logged) that this environment's egress policy needs fred.stlouisfed.org, www.sunsirs.com, www.freightos.com, api.bls.gov, businessanalytiq.com, www.dbschenker.com, container-news.com and drewry.co.uk allowlisted for this weekly refresh to ever resume appending real data."},
-    {"date": "2026-08-10", "note": "Refresh BLOCKED a FIFTH consecutive week, identical failure mode: curl (fred.stlouisfed.org, www.sunsirs.com, www.freightos.com, non-source control example.com) and the WebFetch tool (fred.stlouisfed.org, container-news.com) all rejected with 403/EGRESS_BLOCKED; agent-proxy status endpoint (now port 38779) recentRelayFailures logged all four CONNECT rejections live during this run. Only WebSearch reachable. Used WebSearch for the two permitted cross-checks: (1) Drewry WCI — clean new dated reading, week 32-2026 (~2026-08-06): composite $4,297/FEU (+1% w/w, rebounding after 3 consecutive down weeks), Shanghai→Rotterdam $4,653/FEU (flat w/w) — refreshed secondary_sources.drewry_wci.note only (non-indexed field); (2) SCFI Europe — search surfaced only a generic 'Shanghai-North Europe spot $3,500-4,500/40HQ' carrier range and a vague '+0.54% w/w early July' commentary line, neither attributed to a named-week SCFI 20ft TEU print, so declined to append per the 2026-07-20 basis-mismatch lesson. No points appended or changed in any of the 19 core plotted series across all six families; every existing value remains untouched. Version bumped and last_refresh updated only to record this attempt. This is now 5 of the last 5 weekly runs fully blocked at the network-policy layer with zero change in the underlying policy — re-escalated to the user in this run's summary; the fix remains allowlisting fred.stlouisfed.org, www.sunsirs.com, www.freightos.com, api.bls.gov, businessanalytiq.com, www.dbschenker.com, container-news.com, drewry.co.uk and shippingtelegraph.com for this session's egress policy."},
-    {"date": "2026-08-17", "note": "Refresh BLOCKED a SIXTH consecutive week, identical failure mode: curl on fred.stlouisfed.org and non-source control example.com both got 403 CONNECT tunnel rejection; WebFetch on fred.stlouisfed.org returned structured EGRESS_BLOCKED; agent-proxy status endpoint (port 44783) recentRelayFailures confirmed the live 403 on fred.stlouisfed.org:443. Only WebSearch reachable. Used WebSearch for the two permitted cross-checks: (1) Drewry WCI — clean new dated reading, week 33-2026 (2026-08-13): composite $4,339/FEU (+1% w/w, Transpacific-driven) — refreshed secondary_sources.drewry_wci.note only (non-indexed field); (2) SCFI Europe — search surfaced two candidate figures, neither usable: a '$2,964/TEU, -2.46% w/w' figure with no explicit SCFI attribution or named week, and a SCFI-attributed Shanghai-North Europe figure quoted per-40ft ($4,934/FEU forecast, -2.1% w/w) rather than the per-TEU 20ft basis this series tracks — declined to append either, per the 2026-07-20 basis-mismatch lesson. No points appended or changed in any of the 19 core plotted series across all six families; every existing value remains untouched. Version bumped and last_refresh updated only to record this attempt. This is now 6 of the last 6 weekly runs fully blocked at the network-policy layer with zero change in the underlying policy; re-flagging to the user that fred.stlouisfed.org, www.sunsirs.com, www.freightos.com, api.bls.gov, businessanalytiq.com, www.dbschenker.com, container-news.com, drewry.co.uk and shippingtelegraph.com remain unreachable and need allowlisting for this weekly refresh to resume appending real data."},
-    {"date": "2026-08-24", "note": "Refresh BLOCKED a SEVENTH consecutive week, identical failure mode: curl on fred.stlouisfed.org and non-source control example.com both got 403 CONNECT tunnel rejection; WebFetch on fred.stlouisfed.org returned structured EGRESS_BLOCKED; agent-proxy status endpoint (port 35281) recentRelayFailures confirmed live 403s on both fred.stlouisfed.org:443 and example.com:443 during this run. Only WebSearch reachable. Used WebSearch for the two permitted cross-checks: (1) Drewry WCI — clean new dated reading, week 34-2026 (2026-08-20): composite $4,526/FEU (+4% w/w, Transpacific-driven) — refreshed secondary_sources.drewry_wci.note only (non-indexed field); (2) SCFI Europe — search surfaced only carrier FAK/posted rates (CMA CGM $3,700/20ft FAK posted, some Ocean Alliance spot promos as low as $1,750/20ft) and a stale 'early July +0.54% w/w' SCFI mention already captured in a prior run, none a current named-week SCFI 20ft print — declined to append per the 2026-07-20 basis-mismatch lesson. No points appended or changed in any of the 19 core plotted series across all six families; every existing value remains untouched. Version bumped and last_refresh updated only to record this attempt. This is now 7 of the last 7 weekly runs fully blocked at the network-policy layer with zero change in the underlying policy; re-flagging to the user that fred.stlouisfed.org, www.sunsirs.com, www.freightos.com, api.bls.gov, businessanalytiq.com, www.dbschenker.com, container-news.com, drewry.co.uk and shippingtelegraph.com remain unreachable and need allowlisting for this weekly refresh to resume appending real data."},
-    {"date": "2026-08-31", "note": "Refresh BLOCKED an EIGHTH consecutive week, identical failure mode: curl on fred.stlouisfed.org, www.sunsirs.com and non-source control example.com all got 403 CONNECT tunnel rejection (connect_rejected, organization policy); WebFetch on fred.stlouisfed.org returned structured EGRESS_BLOCKED. agent-proxy status endpoint (port 39445 this run) reproduced the live 403s during the reconfirmation curl. Only WebSearch reachable. Used WebSearch for the two permitted cross-checks: (1) Drewry WCI — clean new dated reading, week 35-2026 (2026-08-27): composite $4,473/FEU (-1% w/w, Transpacific- and Asia-Europe-driven), Shanghai→Rotterdam $4,287/FEU (-3% w/w) — refreshed secondary_sources.drewry_wci.note only (non-indexed field); (2) SCFI Europe — search surfaced only general 'Europe route in a downward channel' commentary with no figure attributed to a named-week SCFI 20ft TEU print, so declined to append per the 2026-07-20 basis-mismatch lesson. No points appended or changed in any of the 19 core plotted series across all six families; every existing value remains untouched. Version bumped and last_refresh updated only to record this attempt. This is now 8 of the last 8 weekly runs fully blocked at the network-policy layer with zero change in the underlying policy; re-flagging to the user that fred.stlouisfed.org, www.sunsirs.com, www.freightos.com, api.bls.gov, businessanalytiq.com, www.dbschenker.com, container-news.com, drewry.co.uk and shippingtelegraph.com remain unreachable and need allowlisting for this weekly refresh to resume appending real data."},
-    {"date": "2026-09-07", "note": "Refresh BLOCKED a NINTH consecutive week, identical failure mode: curl on fred.stlouisfed.org and non-source control example.com both got 403 CONNECT tunnel rejection (connect_rejected, organization policy); WebFetch on fred.stlouisfed.org returned structured EGRESS_BLOCKED. agent-proxy status endpoint (port 40461 this run) confirmed enabled with an empty recentRelayFailures cache before the test, then reproduced the 403 live. Only WebSearch reachable. Used WebSearch for the two permitted cross-checks: (1) Drewry WCI — clean new dated reading, week 36-2026 (~2026-09-03): composite unchanged at $4,465/FEU, Shanghai→Rotterdam $4,092/FEU (-5% w/w, -$498), Shanghai→Los Angeles $7,185/FEU (+5%), Shanghai→New York $9,587/FEU (+3%) — refreshed secondary_sources.drewry_wci.note only (non-indexed field); (2) SCFI Europe — search surfaced a SunSirs article headline ('SCFI Surges for Third Consecutive Week') citing $1,315/TEU for Shanghai-Europe with an '11.2% decrease', but follow-up search showed this exact figure ($1,315-1,317) matches CW22/CW17 2025 DB Schenker PDF data, not a genuine current 2026 print — a basis/date-mismatch trap consistent with the 2026-07-20 lesson, so declined to append. No points appended or changed in any of the 19 core plotted series across all six families; every existing value remains untouched. Version bumped and last_refresh updated only to record this attempt. This is now 9 of the last 9 weekly runs fully blocked at the network-policy layer with zero change in the underlying policy; re-flagging to the user that fred.stlouisfed.org, www.sunsirs.com, www.freightos.com, api.bls.gov, businessanalytiq.com, www.dbschenker.com, container-news.com, drewry.co.uk and shippingtelegraph.com remain unreachable and need allowlisting for this weekly refresh to resume appending real data."},
-    {"date": "2026-09-14", "note": "Refresh BLOCKED a TENTH consecutive week, identical failure mode: curl on fred.stlouisfed.org and non-source control example.com both got 403 CONNECT tunnel rejection (connect_rejected, organization policy); WebFetch on fred.stlouisfed.org returned structured EGRESS_BLOCKED. agent-proxy status endpoint (port 45431 this run) showed an empty recentRelayFailures cache before the test, then reproduced both 403s live. Only WebSearch reachable. Used WebSearch for the two permitted cross-checks: (1) Drewry WCI — clean new dated reading, week 37-2026 (2026-09-10): composite unchanged for 2nd consecutive week at $4,476/FEU, Shanghai→Los Angeles $7,352/FEU (+2%), Shanghai→New York $9,726/FEU (+1%), Shanghai→Genoa $4,216/FEU (-3%), Shanghai→Rotterdam $3,997/FEU (-2%) — refreshed secondary_sources.drewry_wci.note only (non-indexed field); (2) SCFI Europe — search surfaced only the broad composite Containerized Freight Index level (3,662.18 points, 2026-09-11) and stale H2-2026 Shanghai-Rotterdam 40HQ range commentary ($3,500-4,500/40HQ), with no figure attributed to a named-week SCFI 20ft Europe base-port TEU print — declined to append per the 2026-07-20 basis-mismatch lesson. No points appended or changed in any of the 19 core plotted series across all six families; every existing value remains untouched. Version bumped and last_refresh updated only to record this attempt. This is now 10 of the last 10 weekly runs fully blocked at the network-policy layer with zero change in the underlying policy; re-flagging to the user that fred.stlouisfed.org, www.sunsirs.com, www.freightos.com, api.bls.gov, businessanalytiq.com, www.dbschenker.com, container-news.com, drewry.co.uk and shippingtelegraph.com remain unreachable and need allowlisting for this weekly refresh to resume appending real data."}
+    {
+      "date": "2026-07-08",
+      "note": "Initial build. 5 scout agents validated all sources with live fetches. FRED data through May 2026; SunSirs through Jul 2026; freight through 2026-07-08."
+    },
+    {
+      "date": "2026-07-09",
+      "note": "Added Femcare materials family: cotton (PCOTTINDUSDM, live), SAP/PBAT petro proxy (POILBREUSDM Brent), hot-melt adhesive proxy (PCU325520325520), CaCO3 proxy (WPU13940113 ground limestone). All validated with live fetches, data through 2026-05. Other femcare layers map to existing pulp/paper/PLA/freight series."
+    },
+    {
+      "date": "2026-07-13",
+      "note": "Refresh BLOCKED at the network layer, not attempted-and-failed per source: this session's egress policy returned 403 policy-denial for every external host tested (curl AND the WebFetch tool both failed) — fred.stlouisfed.org, api.bls.gov, www.sunsirs.com, www.freightos.com, www.dbschenker.com, businessanalytiq.com, container-news.com all rejected at the CONNECT tunnel (confirmed via the proxy status endpoint: 'gateway answered 403 to CONNECT'). Only WebSearch (Anthropic-hosted) and GitHub were reachable. Did not substitute WebSearch snippets for direct source data (e.g. LME/tradingeconomics spot quotes are a different metric/basis than the IMF PALUMUSDM monthly average this series tracks) to avoid corrupting the indexed history. No points appended, no revisions made, no series changed — every existing value is untouched. Version bumped and last_refresh updated only to record that a refresh was attempted this week and blocked; see lessons[] for the diagnostic and fix for next run."
+    },
+    {
+      "date": "2026-07-20",
+      "note": "Refresh BLOCKED again, same failure mode as 2026-07-13: curl and WebFetch both got 403 policy-denial on the CONNECT tunnel for every host tried this session, including non-source control hosts (example.com, www.google.com, en.wikipedia.org) alongside all real sources (fred.stlouisfed.org, www.sunsirs.com, www.freightos.com, api.bls.gov, businessanalytiq.com) — confirms this is a total environment-wide egress block, not a per-source policy denial. Only WebSearch and GitHub reachable. Used WebSearch (per the SCFI recipe's own news-reporting fallback) to check two things: (1) Drewry WCI — got a clean single-source dated figure (2026-07-16: composite $4,547/FEU, Shanghai→Rotterdam $4,873/FEU) and refreshed secondary_sources.drewry_wci.note only, a non-indexed cross-check field, not a plotted series; (2) SCFI Europe — a SunSirs news snippet quoted 'Far East to Europe' spot ~$1,521/TEU (dated late Apr 2026 in the article) which is ~2.2x off the series' own 2026-07-03 point (3418 USD/TEU), indicating a different metric/basket, not the SCFI 20ft Europe base-port headline this series tracks — declined to splice it in. No points appended or changed in any core plotted series. Version bumped and last_refresh updated only to record this attempt; see lessons[] for the new SCFI/SunSirs-snippet trap and the escalation note."
+    },
+    {
+      "date": "2026-07-27",
+      "note": "Refresh BLOCKED a THIRD consecutive week, identical failure mode: curl and the WebFetch tool both got 403 policy-denial on the CONNECT tunnel for every host tested this session — fred.stlouisfed.org, www.sunsirs.com, www.freightos.com, api.bls.gov, drewry.co.uk, and non-source control hosts example.com, www.google.com, en.wikipedia.org. Confirmed via the agent-proxy status endpoint (recentRelayFailures: connect_rejected, 'gateway answered 403 to CONNECT', host fred.stlouisfed.org:443). WebFetch itself (Anthropic-hosted tool, tested directly on fred.stlouisfed.org and drewry.co.uk) is also blocked this way — only WebSearch's own internal snippet path is reachable, not general page fetches. Used WebSearch for two checks per protocol: (1) Drewry WCI cross-check — got a dated figure (~week of 2026-07-23: Shanghai→Rotterdam $4,824/FEU, -1% w/w) and refreshed secondary_sources.drewry_wci.note only (non-indexed field); (2) SCFI Europe — search only surfaced stale Feb/Mar/Apr 2026 Far East→Europe TEU figures with no current-week number attributable specifically to SCFI, so declined to append, consistent with the 2026-07-20 lesson on search-snippet basis mismatches. No points appended or changed in any core plotted series; every existing value remains untouched. Version bumped and last_refresh updated only to record this attempt. This makes 3 of the last 3 weekly runs fully blocked at the network-policy layer — see lessons[] for the escalation recommendation."
+    },
+    {
+      "date": "2026-08-03",
+      "note": "Refresh BLOCKED a FOURTH consecutive week, identical failure mode: curl and the WebFetch tool both got 403 policy-denial on the CONNECT tunnel for every host tested (fred.stlouisfed.org, www.sunsirs.com, www.freightos.com, api.bls.gov, and non-source control example.com) — confirmed via the agent-proxy status endpoint (port now 40427; enabled:true but every external CONNECT still 403s). Only WebSearch reachable. Used WebSearch for the two permitted cross-checks: (1) Drewry WCI — search surfaced the same week-30-2026 reading already captured last run (composite $4,374/FEU -4% w/w; Shanghai→Rotterdam $4,824/FEU -1% w/w) plus no newer week (31/32) published yet by the recap sources searched — refreshed secondary_sources.drewry_wci.note only (non-indexed field) with the cleaner attribution, no new information gained; (2) SCFI Europe — search only surfaced carrier FAK/posted-rate figures (CMA CGM $3,700/20ft FAK, MSC $7,800/FEU Aug hike, 'Shanghai-North Europe $3,500-4,500/40HQ' range) none explicitly attributed to a named-week SCFI print, so declined to append per the 2026-07-20 basis-mismatch lesson. No points appended or changed in any of the 19 core plotted series across all six families; every existing value remains untouched. Version bumped and last_refresh updated only to record this attempt. This is now 4 of the last 4 weekly runs fully blocked at the network-policy layer — flagged directly to the user this time (not just logged) that this environment's egress policy needs fred.stlouisfed.org, www.sunsirs.com, www.freightos.com, api.bls.gov, businessanalytiq.com, www.dbschenker.com, container-news.com and drewry.co.uk allowlisted for this weekly refresh to ever resume appending real data."
+    },
+    {
+      "date": "2026-08-10",
+      "note": "Refresh BLOCKED a FIFTH consecutive week, identical failure mode: curl (fred.stlouisfed.org, www.sunsirs.com, www.freightos.com, non-source control example.com) and the WebFetch tool (fred.stlouisfed.org, container-news.com) all rejected with 403/EGRESS_BLOCKED; agent-proxy status endpoint (now port 38779) recentRelayFailures logged all four CONNECT rejections live during this run. Only WebSearch reachable. Used WebSearch for the two permitted cross-checks: (1) Drewry WCI — clean new dated reading, week 32-2026 (~2026-08-06): composite $4,297/FEU (+1% w/w, rebounding after 3 consecutive down weeks), Shanghai→Rotterdam $4,653/FEU (flat w/w) — refreshed secondary_sources.drewry_wci.note only (non-indexed field); (2) SCFI Europe — search surfaced only a generic 'Shanghai-North Europe spot $3,500-4,500/40HQ' carrier range and a vague '+0.54% w/w early July' commentary line, neither attributed to a named-week SCFI 20ft TEU print, so declined to append per the 2026-07-20 basis-mismatch lesson. No points appended or changed in any of the 19 core plotted series across all six families; every existing value remains untouched. Version bumped and last_refresh updated only to record this attempt. This is now 5 of the last 5 weekly runs fully blocked at the network-policy layer with zero change in the underlying policy — re-escalated to the user in this run's summary; the fix remains allowlisting fred.stlouisfed.org, www.sunsirs.com, www.freightos.com, api.bls.gov, businessanalytiq.com, www.dbschenker.com, container-news.com, drewry.co.uk and shippingtelegraph.com for this session's egress policy."
+    },
+    {
+      "date": "2026-08-17",
+      "note": "Refresh BLOCKED a SIXTH consecutive week, identical failure mode: curl on fred.stlouisfed.org and non-source control example.com both got 403 CONNECT tunnel rejection; WebFetch on fred.stlouisfed.org returned structured EGRESS_BLOCKED; agent-proxy status endpoint (port 44783) recentRelayFailures confirmed the live 403 on fred.stlouisfed.org:443. Only WebSearch reachable. Used WebSearch for the two permitted cross-checks: (1) Drewry WCI — clean new dated reading, week 33-2026 (2026-08-13): composite $4,339/FEU (+1% w/w, Transpacific-driven) — refreshed secondary_sources.drewry_wci.note only (non-indexed field); (2) SCFI Europe — search surfaced two candidate figures, neither usable: a '$2,964/TEU, -2.46% w/w' figure with no explicit SCFI attribution or named week, and a SCFI-attributed Shanghai-North Europe figure quoted per-40ft ($4,934/FEU forecast, -2.1% w/w) rather than the per-TEU 20ft basis this series tracks — declined to append either, per the 2026-07-20 basis-mismatch lesson. No points appended or changed in any of the 19 core plotted series across all six families; every existing value remains untouched. Version bumped and last_refresh updated only to record this attempt. This is now 6 of the last 6 weekly runs fully blocked at the network-policy layer with zero change in the underlying policy; re-flagging to the user that fred.stlouisfed.org, www.sunsirs.com, www.freightos.com, api.bls.gov, businessanalytiq.com, www.dbschenker.com, container-news.com, drewry.co.uk and shippingtelegraph.com remain unreachable and need allowlisting for this weekly refresh to resume appending real data."
+    },
+    {
+      "date": "2026-08-24",
+      "note": "Refresh BLOCKED a SEVENTH consecutive week, identical failure mode: curl on fred.stlouisfed.org and non-source control example.com both got 403 CONNECT tunnel rejection; WebFetch on fred.stlouisfed.org returned structured EGRESS_BLOCKED; agent-proxy status endpoint (port 35281) recentRelayFailures confirmed live 403s on both fred.stlouisfed.org:443 and example.com:443 during this run. Only WebSearch reachable. Used WebSearch for the two permitted cross-checks: (1) Drewry WCI — clean new dated reading, week 34-2026 (2026-08-20): composite $4,526/FEU (+4% w/w, Transpacific-driven) — refreshed secondary_sources.drewry_wci.note only (non-indexed field); (2) SCFI Europe — search surfaced only carrier FAK/posted rates (CMA CGM $3,700/20ft FAK posted, some Ocean Alliance spot promos as low as $1,750/20ft) and a stale 'early July +0.54% w/w' SCFI mention already captured in a prior run, none a current named-week SCFI 20ft print — declined to append per the 2026-07-20 basis-mismatch lesson. No points appended or changed in any of the 19 core plotted series across all six families; every existing value remains untouched. Version bumped and last_refresh updated only to record this attempt. This is now 7 of the last 7 weekly runs fully blocked at the network-policy layer with zero change in the underlying policy; re-flagging to the user that fred.stlouisfed.org, www.sunsirs.com, www.freightos.com, api.bls.gov, businessanalytiq.com, www.dbschenker.com, container-news.com, drewry.co.uk and shippingtelegraph.com remain unreachable and need allowlisting for this weekly refresh to resume appending real data."
+    },
+    {
+      "date": "2026-08-31",
+      "note": "Refresh BLOCKED an EIGHTH consecutive week, identical failure mode: curl on fred.stlouisfed.org, www.sunsirs.com and non-source control example.com all got 403 CONNECT tunnel rejection (connect_rejected, organization policy); WebFetch on fred.stlouisfed.org returned structured EGRESS_BLOCKED. agent-proxy status endpoint (port 39445 this run) reproduced the live 403s during the reconfirmation curl. Only WebSearch reachable. Used WebSearch for the two permitted cross-checks: (1) Drewry WCI — clean new dated reading, week 35-2026 (2026-08-27): composite $4,473/FEU (-1% w/w, Transpacific- and Asia-Europe-driven), Shanghai→Rotterdam $4,287/FEU (-3% w/w) — refreshed secondary_sources.drewry_wci.note only (non-indexed field); (2) SCFI Europe — search surfaced only general 'Europe route in a downward channel' commentary with no figure attributed to a named-week SCFI 20ft TEU print, so declined to append per the 2026-07-20 basis-mismatch lesson. No points appended or changed in any of the 19 core plotted series across all six families; every existing value remains untouched. Version bumped and last_refresh updated only to record this attempt. This is now 8 of the last 8 weekly runs fully blocked at the network-policy layer with zero change in the underlying policy; re-flagging to the user that fred.stlouisfed.org, www.sunsirs.com, www.freightos.com, api.bls.gov, businessanalytiq.com, www.dbschenker.com, container-news.com, drewry.co.uk and shippingtelegraph.com remain unreachable and need allowlisting for this weekly refresh to resume appending real data."
+    },
+    {
+      "date": "2026-09-07",
+      "note": "Refresh BLOCKED a NINTH consecutive week, identical failure mode: curl on fred.stlouisfed.org and non-source control example.com both got 403 CONNECT tunnel rejection (connect_rejected, organization policy); WebFetch on fred.stlouisfed.org returned structured EGRESS_BLOCKED. agent-proxy status endpoint (port 40461 this run) confirmed enabled with an empty recentRelayFailures cache before the test, then reproduced the 403 live. Only WebSearch reachable. Used WebSearch for the two permitted cross-checks: (1) Drewry WCI — clean new dated reading, week 36-2026 (~2026-09-03): composite unchanged at $4,465/FEU, Shanghai→Rotterdam $4,092/FEU (-5% w/w, -$498), Shanghai→Los Angeles $7,185/FEU (+5%), Shanghai→New York $9,587/FEU (+3%) — refreshed secondary_sources.drewry_wci.note only (non-indexed field); (2) SCFI Europe — search surfaced a SunSirs article headline ('SCFI Surges for Third Consecutive Week') citing $1,315/TEU for Shanghai-Europe with an '11.2% decrease', but follow-up search showed this exact figure ($1,315-1,317) matches CW22/CW17 2025 DB Schenker PDF data, not a genuine current 2026 print — a basis/date-mismatch trap consistent with the 2026-07-20 lesson, so declined to append. No points appended or changed in any of the 19 core plotted series across all six families; every existing value remains untouched. Version bumped and last_refresh updated only to record this attempt. This is now 9 of the last 9 weekly runs fully blocked at the network-policy layer with zero change in the underlying policy; re-flagging to the user that fred.stlouisfed.org, www.sunsirs.com, www.freightos.com, api.bls.gov, businessanalytiq.com, www.dbschenker.com, container-news.com, drewry.co.uk and shippingtelegraph.com remain unreachable and need allowlisting for this weekly refresh to resume appending real data."
+    },
+    {
+      "date": "2026-09-14",
+      "note": "Refresh BLOCKED a TENTH consecutive week, identical failure mode: curl on fred.stlouisfed.org and non-source control example.com both got 403 CONNECT tunnel rejection (connect_rejected, organization policy); WebFetch on fred.stlouisfed.org returned structured EGRESS_BLOCKED. agent-proxy status endpoint (port 45431 this run) showed an empty recentRelayFailures cache before the test, then reproduced both 403s live. Only WebSearch reachable. Used WebSearch for the two permitted cross-checks: (1) Drewry WCI — clean new dated reading, week 37-2026 (2026-09-10): composite unchanged for 2nd consecutive week at $4,476/FEU, Shanghai→Los Angeles $7,352/FEU (+2%), Shanghai→New York $9,726/FEU (+1%), Shanghai→Genoa $4,216/FEU (-3%), Shanghai→Rotterdam $3,997/FEU (-2%) — refreshed secondary_sources.drewry_wci.note only (non-indexed field); (2) SCFI Europe — search surfaced only the broad composite Containerized Freight Index level (3,662.18 points, 2026-09-11) and stale H2-2026 Shanghai-Rotterdam 40HQ range commentary ($3,500-4,500/40HQ), with no figure attributed to a named-week SCFI 20ft Europe base-port TEU print — declined to append per the 2026-07-20 basis-mismatch lesson. No points appended or changed in any of the 19 core plotted series across all six families; every existing value remains untouched. Version bumped and last_refresh updated only to record this attempt. This is now 10 of the last 10 weekly runs fully blocked at the network-policy layer with zero change in the underlying policy; re-flagging to the user that fred.stlouisfed.org, www.sunsirs.com, www.freightos.com, api.bls.gov, businessanalytiq.com, www.dbschenker.com, container-news.com, drewry.co.uk and shippingtelegraph.com remain unreachable and need allowlisting for this weekly refresh to resume appending real data."
+    },
+    {
+      "date": "2026-09-21",
+      "note": "Refresh BLOCKED an ELEVENTH consecutive week (identical total egress block since 2026-07-13): reconfirmed via one curl round (fred.stlouisfed.org, www.sunsirs.com, non-source control example.com — all connect_rejected/403 CONNECT tunnel) and one WebFetch call (fred.stlouisfed.org — structured EGRESS_BLOCKED). Only WebSearch reachable. Two permitted cross-checks: (1) Drewry WCI — clean new dated reading, week 38-2026 (2026-09-17): composite $4,500/FEU (+1% w/w) — refreshed secondary_sources.drewry_wci.note only (non-indexed field); (2) SCFI Europe — search surfaced 'Shanghai-Rotterdam dropped 5% to US$4,092 per TEU' (IndexBox blog) but that exact figure ($4,092) is this DB's own already-recorded week-36 Drewry Shanghai→Rotterdam *FEU* reading (secondary_sources.drewry_wci.note), evidently relabeled by the blog as an SCFI *TEU* figure — a new trap variant (secondary blogs syndicating/mislabeling Drewry data as SCFI); declined to append per the 2026-07-20 basis-mismatch lesson. No points appended or changed in any of the 19 core plotted series across all six families; every existing value remains untouched. Version bumped and last_refresh updated only to record this attempt. This is now 11 of the last 11 weekly runs fully blocked at the network-policy layer with zero change in the underlying policy; re-flagging to the user that fred.stlouisfed.org, www.sunsirs.com, www.freightos.com, api.bls.gov, businessanalytiq.com, www.dbschenker.com, container-news.com, drewry.co.uk and shippingtelegraph.com remain unreachable and need allowlisting for this weekly refresh to ever resume appending real data."
+    }
   ],
   "families": [
     {
@@ -44,29 +84,95 @@
       "name": "Core metals",
       "series": [
         {
-          "id": "aluminum", "label": "Aluminum", "proxy": false,
+          "id": "aluminum",
+          "label": "Aluminum",
+          "proxy": false,
           "source": "FRED PALUMUSDM (IMF Global Price, LME-based)",
           "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=PALUMUSDM",
-          "unit": "USD/t", "currency": "USD", "frequency": "monthly",
+          "unit": "USD/t",
+          "currency": "USD",
+          "frequency": "monthly",
           "quirks": "~1-2 month publication lag; IMF series occasionally revised.",
-          "points": {"2025-01": 2571.37, "2025-02": 2655.77, "2025-03": 2651.60, "2025-04": 2367.80, "2025-05": 2447.34, "2025-06": 2525.96, "2025-07": 2606.37, "2025-08": 2598.74, "2025-09": 2654.48, "2025-10": 2793.09, "2025-11": 2819.06, "2025-12": 2875.90, "2026-01": 3133.98, "2026-02": 3065.19, "2026-03": 3372.95, "2026-04": 3594.38, "2026-05": 3654.02}
+          "points": {
+            "2025-01": 2571.37,
+            "2025-02": 2655.77,
+            "2025-03": 2651.6,
+            "2025-04": 2367.8,
+            "2025-05": 2447.34,
+            "2025-06": 2525.96,
+            "2025-07": 2606.37,
+            "2025-08": 2598.74,
+            "2025-09": 2654.48,
+            "2025-10": 2793.09,
+            "2025-11": 2819.06,
+            "2025-12": 2875.9,
+            "2026-01": 3133.98,
+            "2026-02": 3065.19,
+            "2026-03": 3372.95,
+            "2026-04": 3594.38,
+            "2026-05": 3654.02
+          }
         },
         {
-          "id": "copper", "label": "Copper", "proxy": false,
+          "id": "copper",
+          "label": "Copper",
+          "proxy": false,
           "source": "FRED PCOPPUSDM (IMF Global Price, LME-based)",
           "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=PCOPPUSDM",
-          "unit": "USD/t", "currency": "USD", "frequency": "monthly",
+          "unit": "USD/t",
+          "currency": "USD",
+          "frequency": "monthly",
           "quirks": "~1-2 month publication lag.",
-          "points": {"2025-01": 8976.68, "2025-02": 9330.98, "2025-03": 9735.82, "2025-04": 9172.70, "2025-05": 9531.20, "2025-06": 9835.07, "2025-07": 9770.58, "2025-08": 9671.88, "2025-09": 9994.77, "2025-10": 10739.92, "2025-11": 10812.03, "2025-12": 11790.96, "2026-01": 12986.61, "2026-02": 12951.34, "2026-03": 12528.71, "2026-04": 12890.69, "2026-05": 13483.75}
+          "points": {
+            "2025-01": 8976.68,
+            "2025-02": 9330.98,
+            "2025-03": 9735.82,
+            "2025-04": 9172.7,
+            "2025-05": 9531.2,
+            "2025-06": 9835.07,
+            "2025-07": 9770.58,
+            "2025-08": 9671.88,
+            "2025-09": 9994.77,
+            "2025-10": 10739.92,
+            "2025-11": 10812.03,
+            "2025-12": 11790.96,
+            "2026-01": 12986.61,
+            "2026-02": 12951.34,
+            "2026-03": 12528.71,
+            "2026-04": 12890.69,
+            "2026-05": 13483.75
+          }
         },
         {
-          "id": "stainless", "label": "Stainless (420 proxy)", "proxy": true,
+          "id": "stainless",
+          "label": "Stainless (420 proxy)",
+          "proxy": true,
           "proxy_note": "No free SS420 grade price exists (MEPS/Argus paywalled). Proxy = US PPI stainless steel pipe & tube, a finished stainless mill product index. Alt proxy validated: WPU101212 stainless scrap PPI (more volatile, nickel-driven; note SS420 is low-nickel).",
           "source": "FRED WPU10170674 (PPI: Steel Pipe & Tube, Stainless)",
           "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WPU10170674",
-          "unit": "index 1982=100", "currency": "USD index", "frequency": "monthly",
+          "unit": "index 1982=100",
+          "currency": "USD index",
+          "frequency": "monthly",
           "quirks": "Rejected series: WPU10170502 discontinued 2023; WPU101707 is carbon steel.",
-          "points": {"2025-01": 131.669, "2025-02": 133.158, "2025-03": 132.455, "2025-04": 135.495, "2025-05": 139.919, "2025-06": 144.144, "2025-07": 143.349, "2025-08": 144.126, "2025-09": 143.246, "2025-10": 143.197, "2025-11": 144.624, "2025-12": 145.182, "2026-01": 148.478, "2026-02": 148.443, "2026-03": 149.336, "2026-04": 151.583, "2026-05": 151.535}
+          "points": {
+            "2025-01": 131.669,
+            "2025-02": 133.158,
+            "2025-03": 132.455,
+            "2025-04": 135.495,
+            "2025-05": 139.919,
+            "2025-06": 144.144,
+            "2025-07": 143.349,
+            "2025-08": 144.126,
+            "2025-09": 143.246,
+            "2025-10": 143.197,
+            "2025-11": 144.624,
+            "2025-12": 145.182,
+            "2026-01": 148.478,
+            "2026-02": 148.443,
+            "2026-03": 149.336,
+            "2026-04": 151.583,
+            "2026-05": 151.535
+          }
         }
       ]
     },
@@ -75,39 +181,133 @@
       "name": "Plastics",
       "series": [
         {
-          "id": "pp", "label": "PP", "proxy": false,
+          "id": "pp",
+          "label": "PP",
+          "proxy": false,
           "source": "SunSirs PP benchmark (China spot)",
           "url": "https://www.sunsirs.com/uk/prodetail-718.html",
           "history_url": "https://www.sunsirs.com/uk/sdetail-month-YYYY-MM.html",
-          "unit": "CNY/t", "currency": "CNY", "frequency": "monthly (month-end benchmark; latest point is most recent daily)",
+          "unit": "CNY/t",
+          "currency": "CNY",
+          "frequency": "monthly (month-end benchmark; latest point is most recent daily)",
           "quirks": "China domestic spot. Benchmark basket occasionally revised. Mar 2026 spike (+38-43% across polymers) is real, mirrored in BLS.",
-          "points": {"2025-01": 7750.00, "2025-02": 7987.50, "2025-03": 8087.50, "2025-04": 7481.67, "2025-05": 7325.00, "2025-06": 7466.67, "2025-07": 7375.00, "2025-08": 7300.00, "2025-09": 7062.50, "2025-10": 6962.50, "2025-11": 6747.50, "2025-12": 6535.00, "2026-01": 6720.00, "2026-02": 6787.50, "2026-03": 9700.00, "2026-04": 9550.00, "2026-05": 10062.50, "2026-06": 8587.50, "2026-07-08": 8400.00}
+          "points": {
+            "2025-01": 7750.0,
+            "2025-02": 7987.5,
+            "2025-03": 8087.5,
+            "2025-04": 7481.67,
+            "2025-05": 7325.0,
+            "2025-06": 7466.67,
+            "2025-07": 7375.0,
+            "2025-08": 7300.0,
+            "2025-09": 7062.5,
+            "2025-10": 6962.5,
+            "2025-11": 6747.5,
+            "2025-12": 6535.0,
+            "2026-01": 6720.0,
+            "2026-02": 6787.5,
+            "2026-03": 9700.0,
+            "2026-04": 9550.0,
+            "2026-05": 10062.5,
+            "2026-06": 8587.5,
+            "2026-07-08": 8400.0
+          }
         },
         {
-          "id": "hdpe", "label": "HDPE", "proxy": false,
+          "id": "hdpe",
+          "label": "HDPE",
+          "proxy": false,
           "source": "SunSirs HDPE benchmark (China spot)",
           "url": "https://www.sunsirs.com/uk/prodetail-295.html",
           "history_url": "https://www.sunsirs.com/uk/sdetail-month-YYYY-MM.html",
-          "unit": "CNY/t", "currency": "CNY", "frequency": "monthly (month-end benchmark)",
-          "points": {"2025-01": 8400.00, "2025-02": 8387.50, "2025-03": 8387.50, "2025-04": 8112.50, "2025-05": 8095.00, "2025-06": 8112.50, "2025-07": 7975.00, "2025-08": 7982.50, "2025-09": 7912.50, "2025-10": 7650.00, "2025-11": 7387.50, "2025-12": 6862.50, "2026-01": 7337.50, "2026-02": 7317.50, "2026-03": 10137.50, "2026-04": 10137.50, "2026-05": 10157.50, "2026-06": 9837.50, "2026-07-08": 10032.50}
+          "unit": "CNY/t",
+          "currency": "CNY",
+          "frequency": "monthly (month-end benchmark)",
+          "points": {
+            "2025-01": 8400.0,
+            "2025-02": 8387.5,
+            "2025-03": 8387.5,
+            "2025-04": 8112.5,
+            "2025-05": 8095.0,
+            "2025-06": 8112.5,
+            "2025-07": 7975.0,
+            "2025-08": 7982.5,
+            "2025-09": 7912.5,
+            "2025-10": 7650.0,
+            "2025-11": 7387.5,
+            "2025-12": 6862.5,
+            "2026-01": 7337.5,
+            "2026-02": 7317.5,
+            "2026-03": 10137.5,
+            "2026-04": 10137.5,
+            "2026-05": 10157.5,
+            "2026-06": 9837.5,
+            "2026-07-08": 10032.5
+          }
         },
         {
-          "id": "ldpe", "label": "LDPE", "proxy": false,
+          "id": "ldpe",
+          "label": "LDPE",
+          "proxy": false,
           "source": "SunSirs LDPE benchmark (China spot)",
           "url": "https://www.sunsirs.com/uk/prodetail-334.html",
           "history_url": "https://www.sunsirs.com/uk/sdetail-month-YYYY-MM.html",
-          "unit": "CNY/t", "currency": "CNY", "frequency": "monthly (month-end benchmark)",
-          "points": {"2025-01": 9950.00, "2025-02": 10150.00, "2025-03": 9633.33, "2025-04": 9216.67, "2025-05": 9166.67, "2025-06": 9566.67, "2025-07": 9516.67, "2025-08": 9650.00, "2025-09": 9596.67, "2025-10": 9316.67, "2025-11": 9000.00, "2025-12": 8400.00, "2026-01": 9066.67, "2026-02": 8633.33, "2026-03": 11483.33, "2026-04": 11533.33, "2026-05": 10733.33, "2026-06": 9333.33, "2026-07-08": 9633.33}
+          "unit": "CNY/t",
+          "currency": "CNY",
+          "frequency": "monthly (month-end benchmark)",
+          "points": {
+            "2025-01": 9950.0,
+            "2025-02": 10150.0,
+            "2025-03": 9633.33,
+            "2025-04": 9216.67,
+            "2025-05": 9166.67,
+            "2025-06": 9566.67,
+            "2025-07": 9516.67,
+            "2025-08": 9650.0,
+            "2025-09": 9596.67,
+            "2025-10": 9316.67,
+            "2025-11": 9000.0,
+            "2025-12": 8400.0,
+            "2026-01": 9066.67,
+            "2026-02": 8633.33,
+            "2026-03": 11483.33,
+            "2026-04": 11533.33,
+            "2026-05": 10733.33,
+            "2026-06": 9333.33,
+            "2026-07-08": 9633.33
+          }
         },
         {
-          "id": "pla", "label": "PLA (proxy)", "proxy": true,
+          "id": "pla",
+          "label": "PLA (proxy)",
+          "proxy": true,
           "proxy_note": "No free PLA series exists (SunSirs doesn't track PLA; no BLS/FRED series; businessanalytiq history paywalled). Proxy = US PPI thermoplastic resins (all resins basket). One-off free reference: businessanalytiq 2026-06 PLA Europe $2.74/kg, NE Asia $2.76/kg, N.America $2.64/kg.",
           "source": "FRED/BLS WPU0662 (PPI: Thermoplastic Resins)",
           "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WPU0662",
           "fallback_url": "https://api.bls.gov/publicAPI/v2/timeseries/data/WPU0662",
-          "unit": "index 1982=100", "currency": "USD index", "frequency": "monthly",
+          "unit": "index 1982=100",
+          "currency": "USD index",
+          "frequency": "monthly",
           "quirks": "~1.5-month lag; last 4 months preliminary and revisable.",
-          "points": {"2025-01": 263.763, "2025-02": 272.924, "2025-03": 275.426, "2025-04": 273.469, "2025-05": 270.092, "2025-06": 266.301, "2025-07": 266.379, "2025-08": 263.885, "2025-09": 260.671, "2025-10": 260.388, "2025-11": 258.016, "2025-12": 253.737, "2026-01": 254.169, "2026-02": 260.673, "2026-03": 266.682, "2026-04": 284.462, "2026-05": 328.121}
+          "points": {
+            "2025-01": 263.763,
+            "2025-02": 272.924,
+            "2025-03": 275.426,
+            "2025-04": 273.469,
+            "2025-05": 270.092,
+            "2025-06": 266.301,
+            "2025-07": 266.379,
+            "2025-08": 263.885,
+            "2025-09": 260.671,
+            "2025-10": 260.388,
+            "2025-11": 258.016,
+            "2025-12": 253.737,
+            "2026-01": 254.169,
+            "2026-02": 260.673,
+            "2026-03": 266.682,
+            "2026-04": 284.462,
+            "2026-05": 328.121
+          }
         }
       ]
     },
@@ -116,20 +316,64 @@
       "name": "Paper & pulp",
       "series": [
         {
-          "id": "pulp", "label": "Wood pulp (proxy)", "proxy": true,
+          "id": "pulp",
+          "label": "Wood pulp (proxy)",
+          "proxy": true,
           "proxy_note": "US PPI index, not a market price. No free NBSK series exists (FOEX/Fastmarkets paid). China spot reference: SunSirs wood pulp 4,426.67 RMB/t on 2026-07-08 (prodetail-958, trailing week only).",
           "source": "FRED WPU0911 (PPI: Wood Pulp)",
           "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WPU0911",
-          "unit": "index 1982=100", "currency": "USD index", "frequency": "monthly",
-          "points": {"2025-01": 221.905, "2025-02": 219.741, "2025-03": 216.731, "2025-04": 220.088, "2025-05": 222.199, "2025-06": 223.495, "2025-07": 224.831, "2025-08": 226.231, "2025-09": 222.355, "2025-10": 215.803, "2025-11": 209.190, "2025-12": 205.046, "2026-01": 202.159, "2026-02": 199.252, "2026-03": 200.180, "2026-04": 201.453, "2026-05": 201.275}
+          "unit": "index 1982=100",
+          "currency": "USD index",
+          "frequency": "monthly",
+          "points": {
+            "2025-01": 221.905,
+            "2025-02": 219.741,
+            "2025-03": 216.731,
+            "2025-04": 220.088,
+            "2025-05": 222.199,
+            "2025-06": 223.495,
+            "2025-07": 224.831,
+            "2025-08": 226.231,
+            "2025-09": 222.355,
+            "2025-10": 215.803,
+            "2025-11": 209.19,
+            "2025-12": 205.046,
+            "2026-01": 202.159,
+            "2026-02": 199.252,
+            "2026-03": 200.18,
+            "2026-04": 201.453,
+            "2026-05": 201.275
+          }
         },
         {
-          "id": "pkgpaper", "label": "Packaging paper (proxy)", "proxy": true,
+          "id": "pkgpaper",
+          "label": "Packaging paper (proxy)",
+          "proxy": true,
           "proxy_note": "US PPI index for packaging & industrial converting paper — kraft/packaging proxy, not a market price. Sharp Apr-May 2026 jump is real in fetched data. Alt validated: WPU0914 paperboard, WPU09150301 corrugated containers.",
           "source": "FRED WPU091303 (PPI: Packaging & Converting Paper)",
           "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WPU091303",
-          "unit": "index 1982=100", "currency": "USD index", "frequency": "monthly",
-          "points": {"2025-01": 318.468, "2025-02": 321.297, "2025-03": 321.615, "2025-04": 323.246, "2025-05": 322.116, "2025-06": 321.073, "2025-07": 320.658, "2025-08": 323.332, "2025-09": 323.690, "2025-10": 324.255, "2025-11": 321.648, "2025-12": 322.231, "2026-01": 323.720, "2026-02": 325.074, "2026-03": 327.716, "2026-04": 338.263, "2026-05": 352.680}
+          "unit": "index 1982=100",
+          "currency": "USD index",
+          "frequency": "monthly",
+          "points": {
+            "2025-01": 318.468,
+            "2025-02": 321.297,
+            "2025-03": 321.615,
+            "2025-04": 323.246,
+            "2025-05": 322.116,
+            "2025-06": 321.073,
+            "2025-07": 320.658,
+            "2025-08": 323.332,
+            "2025-09": 323.69,
+            "2025-10": 324.255,
+            "2025-11": 321.648,
+            "2025-12": 322.231,
+            "2026-01": 323.72,
+            "2026-02": 325.074,
+            "2026-03": 327.716,
+            "2026-04": 338.263,
+            "2026-05": 352.68
+          }
         }
       ]
     },
@@ -138,40 +382,146 @@
       "name": "Toothpaste ingredients",
       "series": [
         {
-          "id": "glycerin", "label": "Glycerin (proxy)", "proxy": true,
+          "id": "glycerin",
+          "label": "Glycerin (proxy)",
+          "proxy": true,
           "proxy_note": "Proxy = US PPI fatty acids (glycerin is the oleochemical co-product). Real China spot: SunSirs Glycerol 8,000 RMB/t flat 2026-07-02..08 (prodetail-1622) — free tier shows trailing week only; accumulating forward. May 2026 proxy spike (+35%) consistent with oleochemical tightness; verify next release.",
           "source": "FRED WPU061403991 (PPI: Fatty acids)",
           "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WPU061403991",
-          "unit": "index Dec2007=100", "currency": "USD index", "frequency": "monthly",
-          "spot": {"value": 8000, "unit": "RMB/t", "label": "China spot (SunSirs)", "url": "https://www.sunsirs.com/uk/prodetail-1622.html", "date": "2026-07-08"},
+          "unit": "index Dec2007=100",
+          "currency": "USD index",
+          "frequency": "monthly",
+          "spot": {
+            "value": 8000,
+            "unit": "RMB/t",
+            "label": "China spot (SunSirs)",
+            "url": "https://www.sunsirs.com/uk/prodetail-1622.html",
+            "date": "2026-07-08"
+          },
           "quirks": "Trap: WPU06140341 is Ethanol despite glycerine-like old code — never use.",
-          "points": {"2025-01": 143.556, "2025-02": 142.929, "2025-03": 174.405, "2025-04": 180.640, "2025-05": 181.601, "2025-06": 181.134, "2025-07": 211.625, "2025-08": 214.564, "2025-09": 212.983, "2025-10": 220.088, "2025-11": 215.588, "2025-12": 216.743, "2026-01": 214.031, "2026-02": 215.392, "2026-03": 225.262, "2026-04": 227.065, "2026-05": 307.110}
+          "points": {
+            "2025-01": 143.556,
+            "2025-02": 142.929,
+            "2025-03": 174.405,
+            "2025-04": 180.64,
+            "2025-05": 181.601,
+            "2025-06": 181.134,
+            "2025-07": 211.625,
+            "2025-08": 214.564,
+            "2025-09": 212.983,
+            "2025-10": 220.088,
+            "2025-11": 215.588,
+            "2025-12": 216.743,
+            "2026-01": 214.031,
+            "2026-02": 215.392,
+            "2026-03": 225.262,
+            "2026-04": 227.065,
+            "2026-05": 307.11
+          }
         },
         {
-          "id": "silica", "label": "Precipitated silica (proxy)", "proxy": true,
+          "id": "silica",
+          "label": "Precipitated silica (proxy)",
+          "proxy": true,
           "proxy_note": "Proxy = US PPI all-other-inorganic-chemicals (broad basket). Real China spot: SunSirs Silica (precipitated / white carbon black) 5,933.33 RMB/t 2026-07-03..08 (prodetail-720) — trailing week only; accumulating forward.",
           "source": "FRED WPU061302833 (PPI: All other inorganic chemicals)",
           "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WPU061302833",
-          "unit": "index Dec2008=100", "currency": "USD index", "frequency": "monthly",
-          "spot": {"value": 5933.33, "unit": "RMB/t", "label": "China spot (SunSirs)", "url": "https://www.sunsirs.com/uk/prodetail-720.html", "date": "2026-07-08"},
-          "points": {"2025-01": 126.637, "2025-02": 127.206, "2025-03": 127.232, "2025-04": 127.183, "2025-05": 127.620, "2025-06": 128.238, "2025-07": 129.792, "2025-08": 128.313, "2025-09": 127.984, "2025-10": 127.937, "2025-11": 128.284, "2025-12": 129.194, "2026-01": 130.604, "2026-02": 130.829, "2026-03": 130.352, "2026-04": 130.551, "2026-05": 133.924}
+          "unit": "index Dec2008=100",
+          "currency": "USD index",
+          "frequency": "monthly",
+          "spot": {
+            "value": 5933.33,
+            "unit": "RMB/t",
+            "label": "China spot (SunSirs)",
+            "url": "https://www.sunsirs.com/uk/prodetail-720.html",
+            "date": "2026-07-08"
+          },
+          "points": {
+            "2025-01": 126.637,
+            "2025-02": 127.206,
+            "2025-03": 127.232,
+            "2025-04": 127.183,
+            "2025-05": 127.62,
+            "2025-06": 128.238,
+            "2025-07": 129.792,
+            "2025-08": 128.313,
+            "2025-09": 127.984,
+            "2025-10": 127.937,
+            "2025-11": 128.284,
+            "2025-12": 129.194,
+            "2026-01": 130.604,
+            "2026-02": 130.829,
+            "2026-03": 130.352,
+            "2026-04": 130.551,
+            "2026-05": 133.924
+          }
         },
         {
-          "id": "polyols", "label": "Erythritol/xylitol (weak proxy)", "proxy": true,
+          "id": "polyols",
+          "label": "Erythritol/xylitol (weak proxy)",
+          "proxy": true,
           "proxy_note": "No free erythritol or xylitol series exists (not on SunSirs; Echemi/ChemAnalyst paywalled; US import prices distorted by 2025 AD/CVD duties on Chinese erythritol). Weak proxy = US PPI wet corn milling (their shared corn feedstock). Captures feedstock cost only — NOT the fermentation-capacity swings that dominate polyol pricing.",
           "source": "FRED PCU311221311221 (PPI: Wet corn milling)",
           "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=PCU311221311221",
-          "unit": "index", "currency": "USD index", "frequency": "monthly",
-          "points": {"2025-01": 242.711, "2025-02": 243.331, "2025-03": 243.276, "2025-04": 245.224, "2025-05": 245.526, "2025-06": 244.955, "2025-07": 248.228, "2025-08": 245.525, "2025-09": 245.499, "2025-10": 244.947, "2025-11": 240.842, "2025-12": 240.544, "2026-01": 242.782, "2026-02": 244.670, "2026-03": 248.041, "2026-04": 254.332, "2026-05": 259.321}
+          "unit": "index",
+          "currency": "USD index",
+          "frequency": "monthly",
+          "points": {
+            "2025-01": 242.711,
+            "2025-02": 243.331,
+            "2025-03": 243.276,
+            "2025-04": 245.224,
+            "2025-05": 245.526,
+            "2025-06": 244.955,
+            "2025-07": 248.228,
+            "2025-08": 245.525,
+            "2025-09": 245.499,
+            "2025-10": 244.947,
+            "2025-11": 240.842,
+            "2025-12": 240.544,
+            "2026-01": 242.782,
+            "2026-02": 244.67,
+            "2026-03": 248.041,
+            "2026-04": 254.332,
+            "2026-05": 259.321
+          }
         },
         {
-          "id": "cmc", "label": "Cellulose gum / CMC (proxy)", "proxy": true,
+          "id": "cmc",
+          "label": "Cellulose gum / CMC (proxy)",
+          "proxy": true,
           "proxy_note": "Proxy = US PPI all-other-basic-organic-chemical mfg (industry basket incl. US CMC producers). Real CMC monthly USD/kg at businessanalytiq, free tier = latest month only: 2026-06 Europe $4.88/kg, N.America $4.51/kg, NE Asia $2.77/kg — polling monthly forward.",
           "source": "FRED PCU325199325199 (PPI: Other basic organic chemical mfg)",
           "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=PCU325199325199",
-          "unit": "index", "currency": "USD index", "frequency": "monthly",
-          "spot": {"value": 4.88, "unit": "USD/kg Europe", "label": "businessanalytiq CMC", "url": "https://businessanalytiq.com/procurementanalytics/index/carboxymethyl-cellulose-price-index/", "date": "2026-06"},
-          "points": {"2025-01": 230.190, "2025-02": 232.078, "2025-03": 235.182, "2025-04": 234.741, "2025-05": 234.242, "2025-06": 236.712, "2025-07": 235.749, "2025-08": 236.883, "2025-09": 237.865, "2025-10": 236.774, "2025-11": 235.154, "2025-12": 237.277, "2026-01": 237.013, "2026-02": 240.158, "2026-03": 238.797, "2026-04": 241.768, "2026-05": 248.071}
+          "unit": "index",
+          "currency": "USD index",
+          "frequency": "monthly",
+          "spot": {
+            "value": 4.88,
+            "unit": "USD/kg Europe",
+            "label": "businessanalytiq CMC",
+            "url": "https://businessanalytiq.com/procurementanalytics/index/carboxymethyl-cellulose-price-index/",
+            "date": "2026-06"
+          },
+          "points": {
+            "2025-01": 230.19,
+            "2025-02": 232.078,
+            "2025-03": 235.182,
+            "2025-04": 234.741,
+            "2025-05": 234.242,
+            "2025-06": 236.712,
+            "2025-07": 235.749,
+            "2025-08": 236.883,
+            "2025-09": 237.865,
+            "2025-10": 236.774,
+            "2025-11": 235.154,
+            "2025-12": 237.277,
+            "2026-01": 237.013,
+            "2026-02": 240.158,
+            "2026-03": 238.797,
+            "2026-04": 241.768,
+            "2026-05": 248.071
+          }
         }
       ]
     },
@@ -180,27 +530,103 @@
       "name": "Container freight",
       "series": [
         {
-          "id": "fbx11", "label": "China→N.Europe 40ft", "proxy": false,
+          "id": "fbx11",
+          "label": "China→N.Europe 40ft",
+          "proxy": false,
           "source": "Freightos FBX11",
           "url": "https://www.freightos.com/enterprise/terminal/fbx-11-china-to-northern-europe/",
-          "unit": "USD/FEU", "currency": "USD", "frequency": "weekly (free history is irregular, via dated weekly blog posts)",
+          "unit": "USD/FEU",
+          "currency": "USD",
+          "frequency": "weekly (free history is irregular, via dated weekly blog posts)",
           "quirks": "Lane page JS-rendered but headline value IS in fetchable HTML. History: freightos.com weekly-freight-updates posts (dated slugs, title-prefixed after ~Apr 2025). Sweden proxy = North Europe base ports.",
-          "points": {"2025-01-07": 5558, "2025-01-14": 5640, "2025-01-28": 4122, "2025-02-25": 2954, "2025-03-25": 2565, "2025-06-12": 2757, "2025-09-04": 2464, "2025-09-10": 2540, "2025-10-22": 1975, "2025-12-30": 2742, "2026-01-06": 3000, "2026-01-13": 2978, "2026-04-07": 2922, "2026-05-05": 2589, "2026-07-08": 5383.8}
+          "points": {
+            "2025-01-07": 5558,
+            "2025-01-14": 5640,
+            "2025-01-28": 4122,
+            "2025-02-25": 2954,
+            "2025-03-25": 2565,
+            "2025-06-12": 2757,
+            "2025-09-04": 2464,
+            "2025-09-10": 2540,
+            "2025-10-22": 1975,
+            "2025-12-30": 2742,
+            "2026-01-06": 3000,
+            "2026-01-13": 2978,
+            "2026-04-07": 2922,
+            "2026-05-05": 2589,
+            "2026-07-08": 5383.8
+          }
         },
         {
-          "id": "fbx01", "label": "China→US West Coast 40ft", "proxy": false,
+          "id": "fbx01",
+          "label": "China→US West Coast 40ft",
+          "proxy": false,
           "source": "Freightos FBX01",
           "url": "https://www.freightos.com/enterprise/terminal/fbx-01-china-to-north-america-west-coast/",
-          "unit": "USD/FEU", "currency": "USD", "frequency": "weekly (free history irregular)",
-          "points": {"2025-01-07": 5929, "2025-01-14": 5924, "2025-01-28": 4938, "2025-02-25": 4362, "2025-03-25": 2238, "2025-06-12": 5488, "2025-09-04": 2096, "2025-09-10": 2163, "2025-10-22": 1687, "2025-12-30": 2145, "2026-01-06": 2617, "2026-01-13": 2757, "2026-04-07": 2420, "2026-05-05": 2725, "2026-07-08": 6687.4}
+          "unit": "USD/FEU",
+          "currency": "USD",
+          "frequency": "weekly (free history irregular)",
+          "points": {
+            "2025-01-07": 5929,
+            "2025-01-14": 5924,
+            "2025-01-28": 4938,
+            "2025-02-25": 4362,
+            "2025-03-25": 2238,
+            "2025-06-12": 5488,
+            "2025-09-04": 2096,
+            "2025-09-10": 2163,
+            "2025-10-22": 1687,
+            "2025-12-30": 2145,
+            "2026-01-06": 2617,
+            "2026-01-13": 2757,
+            "2026-04-07": 2420,
+            "2026-05-05": 2725,
+            "2026-07-08": 6687.4
+          }
         },
         {
-          "id": "scfi-eu", "label": "China→N.Europe 20ft (SCFI)", "proxy": false,
+          "id": "scfi-eu",
+          "label": "China→N.Europe 20ft (SCFI)",
+          "proxy": false,
           "source": "SCFI Europe base ports (via DB Schenker PDF + weekly news reporting)",
           "url": "https://www.dbschenker.com/resource/blob/1826644/782b13d46e9c2ace38636f4311aea651/scfi-overview-kw-data.pdf",
-          "unit": "USD/TEU", "currency": "USD", "frequency": "weekly (Friday)",
+          "unit": "USD/TEU",
+          "currency": "USD",
+          "frequency": "weekly (Friday)",
           "quirks": "Genuine per-TEU (20ft) quoted lane — the only real free 20ft series. Official sse.net.cn renders values as image only. Schenker PDF stale after CW29/2025; later points from weekly news (SunSirs/SDI/container-news). Aug-Nov 2025 gap not freely recoverable — line is broken there deliberately.",
-          "points": {"2025-01-03": 2962, "2025-01-10": 2851, "2025-01-17": 2440, "2025-01-24": 2279, "2025-01-31": 2147, "2025-02-07": 2147, "2025-02-14": 1805, "2025-02-21": 1608, "2025-02-28": 1578, "2025-03-07": 1693, "2025-03-14": 1582, "2025-03-21": 1342, "2025-03-28": 1306, "2025-04-04": 1318, "2025-04-11": 1336, "2025-04-18": 1356, "2025-04-25": 1316, "2025-05-02": 1260, "2025-05-09": 1200, "2025-05-16": 1161, "2025-05-23": 1154, "2025-05-30": 1317, "2025-06-06": 1587, "2025-06-13": 1667, "2025-06-20": 1844, "2025-06-27": 1835, "2025-07-04": 2030, "2025-07-11": 2101, "2025-07-18": 2099, "2025-12-12": 1538, "2026-07-03": 3418}
+          "points": {
+            "2025-01-03": 2962,
+            "2025-01-10": 2851,
+            "2025-01-17": 2440,
+            "2025-01-24": 2279,
+            "2025-01-31": 2147,
+            "2025-02-07": 2147,
+            "2025-02-14": 1805,
+            "2025-02-21": 1608,
+            "2025-02-28": 1578,
+            "2025-03-07": 1693,
+            "2025-03-14": 1582,
+            "2025-03-21": 1342,
+            "2025-03-28": 1306,
+            "2025-04-04": 1318,
+            "2025-04-11": 1336,
+            "2025-04-18": 1356,
+            "2025-04-25": 1316,
+            "2025-05-02": 1260,
+            "2025-05-09": 1200,
+            "2025-05-16": 1161,
+            "2025-05-23": 1154,
+            "2025-05-30": 1317,
+            "2025-06-06": 1587,
+            "2025-06-13": 1667,
+            "2025-06-20": 1844,
+            "2025-06-27": 1835,
+            "2025-07-04": 2030,
+            "2025-07-11": 2101,
+            "2025-07-18": 2099,
+            "2025-12-12": 1538,
+            "2026-07-03": 3418
+          }
         }
       ]
     },
@@ -210,51 +636,195 @@
       "family_note": "Cotton top sheet & side barrier, SAP/PBAT, hot-melt adhesive, CaCO3 filler. Other femcare layers reuse series above: airlaid/fluff & core pulp → Wood pulp; release & wrapper paper → Packaging paper; PLA back film → PLA; inbound ocean freight → Container freight (China lanes as directional proxy for the India→US/EU lanes actually used).",
       "series": [
         {
-          "id": "cotton", "label": "Cotton (Cotlook A)", "proxy": false,
+          "id": "cotton",
+          "label": "Cotton (Cotlook A)",
+          "proxy": false,
           "source": "FRED PCOTTINDUSDM (IMF Global Price of Cotton, Cotlook A)",
           "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=PCOTTINDUSDM",
-          "unit": "US cents/lb", "currency": "USD", "frequency": "monthly",
+          "unit": "US cents/lb",
+          "currency": "USD",
+          "frequency": "monthly",
           "quirks": "~1-2 month publication lag; recent months revisable.",
-          "points": {"2025-01": 78.24, "2025-02": 78.10, "2025-03": 77.64, "2025-04": 78.28, "2025-05": 77.99, "2025-06": 78.19, "2025-07": 78.91, "2025-08": 78.57, "2025-09": 77.98, "2025-10": 75.98, "2025-11": 75.28, "2025-12": 74.07, "2026-01": 74.49, "2026-02": 73.96, "2026-03": 76.94, "2026-04": 85.58, "2026-05": 92.01}
+          "points": {
+            "2025-01": 78.24,
+            "2025-02": 78.1,
+            "2025-03": 77.64,
+            "2025-04": 78.28,
+            "2025-05": 77.99,
+            "2025-06": 78.19,
+            "2025-07": 78.91,
+            "2025-08": 78.57,
+            "2025-09": 77.98,
+            "2025-10": 75.98,
+            "2025-11": 75.28,
+            "2025-12": 74.07,
+            "2026-01": 74.49,
+            "2026-02": 73.96,
+            "2026-03": 76.94,
+            "2026-04": 85.58,
+            "2026-05": 92.01
+          }
         },
         {
-          "id": "sap-pbat", "label": "SAP & PBAT (petro proxy)", "proxy": true,
+          "id": "sap-pbat",
+          "label": "SAP & PBAT (petro proxy)",
+          "proxy": true,
           "proxy_note": "No free price series exists for sodium polyacrylate (SAP) or PBAT. Proxy = Brent crude, their shared petro-feedstock chain (acrylic acid/propylene for SAP; adipic acid/BDO for PBAT). Captures feedstock direction only, not polymer-specific capacity/spread moves. Mar-May 2026 jump is real in the data.",
           "source": "FRED POILBREUSDM (IMF Global Price of Brent Crude)",
           "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=POILBREUSDM",
-          "unit": "USD/bbl", "currency": "USD", "frequency": "monthly",
-          "points": {"2025-01": 78.19, "2025-02": 75.19, "2025-03": 71.74, "2025-04": 66.93, "2025-05": 64.09, "2025-06": 69.85, "2025-07": 69.56, "2025-08": 67.24, "2025-09": 67.61, "2025-10": 63.98, "2025-11": 63.69, "2025-12": 61.81, "2026-01": 64.59, "2026-02": 69.41, "2026-03": 99.41, "2026-04": 102.81, "2026-05": 106.30}
+          "unit": "USD/bbl",
+          "currency": "USD",
+          "frequency": "monthly",
+          "points": {
+            "2025-01": 78.19,
+            "2025-02": 75.19,
+            "2025-03": 71.74,
+            "2025-04": 66.93,
+            "2025-05": 64.09,
+            "2025-06": 69.85,
+            "2025-07": 69.56,
+            "2025-08": 67.24,
+            "2025-09": 67.61,
+            "2025-10": 63.98,
+            "2025-11": 63.69,
+            "2025-12": 61.81,
+            "2026-01": 64.59,
+            "2026-02": 69.41,
+            "2026-03": 99.41,
+            "2026-04": 102.81,
+            "2026-05": 106.3
+          }
         },
         {
-          "id": "adhesive", "label": "Hot-melt adhesive (proxy)", "proxy": true,
+          "id": "adhesive",
+          "label": "Hot-melt adhesive (proxy)",
+          "proxy": true,
           "proxy_note": "Proxy = US PPI adhesive manufacturing (NAICS 325520) — industry index, not a hot-melt quote. Alt validated: WPU067903 adhesives & sealants commodity PPI (more volatile; 2025-01: 396.031 → 2026-05: 441.496). Dead: WPU0674, WPU06740201.",
           "source": "FRED PCU325520325520 (PPI: Adhesive Manufacturing)",
           "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=PCU325520325520",
-          "unit": "index Dec1983=100", "currency": "USD index", "frequency": "monthly",
+          "unit": "index Dec1983=100",
+          "currency": "USD index",
+          "frequency": "monthly",
           "quirks": "~1.5-month lag; last ~4 months get one BLS revision cycle.",
-          "points": {"2025-01": 364.456, "2025-02": 366.450, "2025-03": 368.854, "2025-04": 370.223, "2025-05": 371.723, "2025-06": 373.509, "2025-07": 372.692, "2025-08": 372.779, "2025-09": 375.377, "2025-10": 375.802, "2025-11": 375.054, "2025-12": 375.341, "2026-01": 377.034, "2026-02": 376.538, "2026-03": 378.073, "2026-04": 381.366, "2026-05": 381.339}
+          "points": {
+            "2025-01": 364.456,
+            "2025-02": 366.45,
+            "2025-03": 368.854,
+            "2025-04": 370.223,
+            "2025-05": 371.723,
+            "2025-06": 373.509,
+            "2025-07": 372.692,
+            "2025-08": 372.779,
+            "2025-09": 375.377,
+            "2025-10": 375.802,
+            "2025-11": 375.054,
+            "2025-12": 375.341,
+            "2026-01": 377.034,
+            "2026-02": 376.538,
+            "2026-03": 378.073,
+            "2026-04": 381.366,
+            "2026-05": 381.339
+          }
         },
         {
-          "id": "caco3", "label": "Calcium carbonate (proxy)", "proxy": true,
+          "id": "caco3",
+          "label": "Calcium carbonate (proxy)",
+          "proxy": true,
           "proxy_note": "No free PCC/GCC price series exists. Proxy = US PPI ground limestone (GCC feedstock). Thin-sample index with step changes (Apr 2025 drop, Jan 2026 jump are in the source data). Alt validated: PCU2123122123120 crushed/broken limestone (smoother, more upstream). Minor cost weight in product.",
           "source": "FRED WPU13940113 (PPI: Ground limestone)",
           "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WPU13940113",
-          "unit": "index Dec2003=100", "currency": "USD index", "frequency": "monthly",
-          "points": {"2025-01": 315.911, "2025-02": 317.308, "2025-03": 317.938, "2025-04": 289.886, "2025-05": 284.276, "2025-06": 284.830, "2025-07": 285.322, "2025-08": 285.132, "2025-09": 284.928, "2025-10": 287.682, "2025-11": 287.932, "2025-12": 289.761, "2026-01": 307.684, "2026-02": 307.480, "2026-03": 307.089, "2026-04": 290.360, "2026-05": 304.128}
+          "unit": "index Dec2003=100",
+          "currency": "USD index",
+          "frequency": "monthly",
+          "points": {
+            "2025-01": 315.911,
+            "2025-02": 317.308,
+            "2025-03": 317.938,
+            "2025-04": 289.886,
+            "2025-05": 284.276,
+            "2025-06": 284.83,
+            "2025-07": 285.322,
+            "2025-08": 285.132,
+            "2025-09": 284.928,
+            "2025-10": 287.682,
+            "2025-11": 287.932,
+            "2025-12": 289.761,
+            "2026-01": 307.684,
+            "2026-02": 307.48,
+            "2026-03": 307.089,
+            "2026-04": 290.36,
+            "2026-05": 304.128
+          }
         }
       ]
     }
   ],
   "gaps": [
-    {"id": "uswc-20ft", "name": "China→US West Coast 20ft", "reason": "No free per-TEU spot series exists for this lane: SCFI's USWC lane is itself quoted per-FEU, and FBX and Drewry are FEU-only. A 20ft number would require an unsourced conversion factor, so it is shown as a gap rather than invented. Directional read: use the 40ft (FBX01) line."},
-    {"id": "aloe", "name": "Aloe vera extract", "reason": "No free source found and no defensible proxy: agricultural botanical priced off Indian/Mexican crop conditions; ChemAnalyst index is paywalled; only stray press snapshots exist (~USD 18,800/MT, India, Q3 2025 — single point, not a series)."}
+    {
+      "id": "uswc-20ft",
+      "name": "China→US West Coast 20ft",
+      "reason": "No free per-TEU spot series exists for this lane: SCFI's USWC lane is itself quoted per-FEU, and FBX and Drewry are FEU-only. A 20ft number would require an unsourced conversion factor, so it is shown as a gap rather than invented. Directional read: use the 40ft (FBX01) line."
+    },
+    {
+      "id": "aloe",
+      "name": "Aloe vera extract",
+      "reason": "No free source found and no defensible proxy: agricultural botanical priced off Indian/Mexican crop conditions; ChemAnalyst index is paywalled; only stray press snapshots exist (~USD 18,800/MT, India, Q3 2025 — single point, not a series)."
+    }
   ],
   "secondary_sources": {
-    "drewry_wci": {"url": "https://www.drewry.co.uk/supply-chain-advisors/supply-chain-expertise/world-container-index-assessed-by-drewry", "note": "Latest cleanly-attributed week (via WebSearch, direct fetch blocked this session): week 37-2026 (2026-09-10) composite unchanged for 2nd consecutive week at $4,476/FEU, Shanghai→Los Angeles $7,352/FEU (+2%), Shanghai→New York $9,726/FEU (+1%), Shanghai→Genoa $4,216/FEU (-3%), Shanghai→Rotterdam $3,997/FEU (-2%). Prior readings: week 36-2026 (~2026-09-03) composite unchanged at $4,465/FEU, Shanghai→Rotterdam $4,092/FEU (-5% w/w, -$498); week 35-2026 (2026-08-27) composite $4,473/FEU (-1% w/w), Shanghai→Rotterdam $4,287/FEU (-3% w/w); week 34-2026 (2026-08-20) composite $4,526/FEU (+4% w/w, Transpacific-driven); week 33-2026 (2026-08-13) composite $4,339/FEU (+1% w/w, Transpacific-driven); week 32-2026 (~2026-08-06) composite $4,297/FEU (+1% w/w, rebounding after 3 consecutive down weeks), Shanghai→Rotterdam $4,653/FEU (flat w/w); week 30-2026 composite $4,374/FEU (-4% w/w), Shanghai→Rotterdam $4,824/FEU; 2026-07-16 composite $4,547/FEU (-2% w/w), Shanghai→Rotterdam $4,873/FEU; 2026-07-02 composite $4,530/FEU, Shanghai→Rotterdam $4,682, Shanghai→LA $6,349. History via shippingtelegraph.com, container-news.com and thedcn.com.au weekly articles.", "unit": "USD/FEU"},
-    "scfi_uswc_feu": {"points": {"2025-12-12": 1780, "2026-07-03": 6630}, "unit": "USD/FEU", "note": "SCFI USWC lane, per-FEU — cross-check for FBX01."},
-    "stainless_scrap_alt": {"id": "WPU101212", "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WPU101212", "points": {"2025-01": 436.406, "2025-02": 436.044, "2025-03": 432.729, "2025-04": 415.492, "2025-05": 441.083, "2025-06": 427.755, "2025-07": 415.213, "2025-08": 418.754, "2025-09": 424.133, "2025-10": 410.218, "2025-11": 385.656, "2025-12": 371.935, "2026-01": 411.027, "2026-02": 439.664, "2026-03": 458.274, "2026-04": 483.967, "2026-05": 487.975}, "note": "Stainless & alloy steel scrap PPI — alternate stainless proxy, nickel-heavy."},
-    "sunsirs_pulp_spot": {"url": "https://www.sunsirs.com/uk/prodetail-958.html", "points": {"2026-07-08": 4426.67}, "unit": "RMB/t"},
-    "sunsirs_lldpe": {"url": "https://www.sunsirs.com/uk/prodetail-435.html", "points": {"2025-01": 8430, "2026-06": 7300}, "unit": "RMB/t", "note": "LLDPE also free on SunSirs monthly pages if wanted."}
+    "drewry_wci": {
+      "url": "https://www.drewry.co.uk/supply-chain-advisors/supply-chain-expertise/world-container-index-assessed-by-drewry",
+      "note": "Latest cleanly-attributed week (via WebSearch, direct fetch blocked this session): week 38-2026 (2026-09-17) composite $4,500/FEU (+1% w/w). Prior readings: week 37-2026 (2026-09-10) composite unchanged for 2nd consecutive week at $4,476/FEU, Shanghai→Los Angeles $7,352/FEU (+2%), Shanghai→New York $9,726/FEU (+1%), Shanghai→Genoa $4,216/FEU (-3%), Shanghai→Rotterdam $3,997/FEU (-2%). Prior readings: week 36-2026 (~2026-09-03) composite unchanged at $4,465/FEU, Shanghai→Rotterdam $4,092/FEU (-5% w/w, -$498); week 35-2026 (2026-08-27) composite $4,473/FEU (-1% w/w), Shanghai→Rotterdam $4,287/FEU (-3% w/w); week 34-2026 (2026-08-20) composite $4,526/FEU (+4% w/w, Transpacific-driven); week 33-2026 (2026-08-13) composite $4,339/FEU (+1% w/w, Transpacific-driven); week 32-2026 (~2026-08-06) composite $4,297/FEU (+1% w/w, rebounding after 3 consecutive down weeks), Shanghai→Rotterdam $4,653/FEU (flat w/w); week 30-2026 composite $4,374/FEU (-4% w/w), Shanghai→Rotterdam $4,824/FEU; 2026-07-16 composite $4,547/FEU (-2% w/w), Shanghai→Rotterdam $4,873/FEU; 2026-07-02 composite $4,530/FEU, Shanghai→Rotterdam $4,682, Shanghai→LA $6,349. History via shippingtelegraph.com, container-news.com and thedcn.com.au weekly articles.",
+      "unit": "USD/FEU"
+    },
+    "scfi_uswc_feu": {
+      "points": {
+        "2025-12-12": 1780,
+        "2026-07-03": 6630
+      },
+      "unit": "USD/FEU",
+      "note": "SCFI USWC lane, per-FEU — cross-check for FBX01."
+    },
+    "stainless_scrap_alt": {
+      "id": "WPU101212",
+      "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WPU101212",
+      "points": {
+        "2025-01": 436.406,
+        "2025-02": 436.044,
+        "2025-03": 432.729,
+        "2025-04": 415.492,
+        "2025-05": 441.083,
+        "2025-06": 427.755,
+        "2025-07": 415.213,
+        "2025-08": 418.754,
+        "2025-09": 424.133,
+        "2025-10": 410.218,
+        "2025-11": 385.656,
+        "2025-12": 371.935,
+        "2026-01": 411.027,
+        "2026-02": 439.664,
+        "2026-03": 458.274,
+        "2026-04": 483.967,
+        "2026-05": 487.975
+      },
+      "note": "Stainless & alloy steel scrap PPI — alternate stainless proxy, nickel-heavy."
+    },
+    "sunsirs_pulp_spot": {
+      "url": "https://www.sunsirs.com/uk/prodetail-958.html",
+      "points": {
+        "2026-07-08": 4426.67
+      },
+      "unit": "RMB/t"
+    },
+    "sunsirs_lldpe": {
+      "url": "https://www.sunsirs.com/uk/prodetail-435.html",
+      "points": {
+        "2025-01": 8430,
+        "2026-06": 7300
+      },
+      "unit": "RMB/t",
+      "note": "LLDPE also free on SunSirs monthly pages if wanted."
+    }
   },
   "lessons": [
     "FRED keyless CSV: https://fred.stlouisfed.org/graph/fredgraph.csv?id=SERIESID — no auth; validate response starts with 'observation_date' (invalid IDs return HTML bot page). Worked via curl even when WebFetch got 403 — prefer curl.",
@@ -272,7 +842,8 @@
     "2026-07-20: SunSirs/news-search trap for scfi-eu — a WebSearch snippet paraphrasing a SunSirs article gave 'Far East to Europe' spot rates (~$1,521/TEU, dated late Apr 2026 in the source article) that are wildly inconsistent (~2.2x) with the series' actual SCFI-Europe-base-port 20ft point for a nearby date (2026-07-03: 3418 USD/TEU). This is very likely a different, broader freight metric (e.g. an all-carrier or FEU-normalized average) rather than the specific SCFI 20ft Europe base-port headline this series tracks. Only accept a scfi-eu figure from WebSearch when it's explicitly attributed to SCFI (or DB Schenker's SCFI PDF, or a container-news/gcaptain article quoting the SCFI number directly) for a named week — reject vague 'Far East to Europe' or 'spot market' paraphrases even if superficially on-topic.",
     "2026-07-27: THIRD consecutive week of the identical total egress block (see 2026-07-13 and 2026-07-20 lessons) — reconfirmed via the agent-proxy status endpoint (recentRelayFailures showed connect_rejected/403 on fred.stlouisfed.org:443) and by testing 8 hosts including non-source controls, all 403. New finding: the WebFetch tool itself (not just curl) is blocked the same way for direct source fetches (tested on fred.stlouisfed.org and drewry.co.uk, both 403) — only WebSearch's own internal snippet/index path is reachable, general page fetches are not. Given this is now 3/3 weekly runs blocked at the network-policy layer with no change between attempts, a future run should: (1) do one quick reconfirmation (agent-proxy status + 1-2 host curls) rather than exhaustively re-testing every host, (2) if still blocked, log it and stop rather than spend the run retrying, and (3) flag to the user/environment owner that this session's network policy needs fred.stlouisfed.org, www.sunsirs.com, www.freightos.com, api.bls.gov, businessanalytiq.com, www.dbschenker.com, container-news.com, and drewry.co.uk allowlisted for this weekly refresh to ever succeed again — repeated silent retries are no longer informative once the pattern is established.",
     "2026-08-03: FOURTH consecutive week of the identical total egress block (see 2026-07-13/07-20/07-27 lessons). Did the recommended quick reconfirmation only (agent-proxy status endpoint — note its port changes between sessions, currently 40427, always re-read from /root/.ccr/README.md rather than assuming a prior port — plus curl on fred.stlouisfed.org, www.sunsirs.com, www.freightos.com, api.bls.gov, example.com; all 403 CONNECT) and direct WebFetch on fred.stlouisfed.org (also 403). Did not exhaustively retest every host. New finding: shippingtelegraph.com publishes a weekly 'Drewry World Container Index increased/decreased X% in week NN-2026' recap with a roughly 1-2 week lag, useful for the non-indexed Drewry cross-check but not authoritative for the actual scfi-eu series (it's FEU composite/Shanghai-Rotterdam, not SCFI 20ft TEU). Carrier-announced FAK/posted rates (CMA CGM, MSC rate-hike PR) surfaced readily via WebSearch but are NOT the SCFI spot print — same trap as the 2026-07-20 lesson, just a new source shape (press-release rate announcements instead of news paraphrase); reject both forms unless explicitly attributed to a named-week SCFI number. Given this is now 4/4 weekly runs blocked with zero change in the underlying policy, this run escalated directly to the user in its summary rather than only recording it here — a future run should keep doing the quick reconfirmation + escalate pattern, and should stop re-writing the full host-list test each week once the user has been notified, to save run time for the two permitted WebSearch cross-checks.",
-    "2026-08-10: FIFTH consecutive week of the identical total egress block, zero change from 2026-07-13 through 2026-08-03. New finding: the WebFetch tool now returns a structured {\"error_type\":\"EGRESS_BLOCKED\",\"domain\":...} error instead of a generic 403 — faster to diagnose (no HTTP-code guessing needed) but confirms the identical policy-layer block, not a new failure mode. container-news.com also confirmed EGRESS_BLOCKED this run (previously only inferred). A future run: keep the reconfirmation to 1-2 hosts (one curl + one WebFetch call is enough — the agent-proxy status endpoint's recentRelayFailures[] will show the live 403s), do the two permitted WebSearch cross-checks, and stop expanding this lesson list further each week once the pattern is this well-established — re-escalate to the user in the run summary instead."
+    "2026-08-10: FIFTH consecutive week of the identical total egress block, zero change from 2026-07-13 through 2026-08-03. New finding: the WebFetch tool now returns a structured {\"error_type\":\"EGRESS_BLOCKED\",\"domain\":...} error instead of a generic 403 — faster to diagnose (no HTTP-code guessing needed) but confirms the identical policy-layer block, not a new failure mode. container-news.com also confirmed EGRESS_BLOCKED this run (previously only inferred). A future run: keep the reconfirmation to 1-2 hosts (one curl + one WebFetch call is enough — the agent-proxy status endpoint's recentRelayFailures[] will show the live 403s), do the two permitted WebSearch cross-checks, and stop expanding this lesson list further each week once the pattern is this well-established — re-escalate to the user in the run summary instead.",
+    "2026-09-21: New SCFI-Europe trap variant — secondary blogs (e.g. IndexBox) sometimes syndicate Drewry WCI figures and mislabel them as SCFI TEU rates (this run's search surfaced 'SCFI... $4,092 per TEU' for Shanghai-Rotterdam, which exactly matches this DB's own already-recorded week-36 Drewry FEU reading for the same lane, just relabeled). Cross-check any scfi-eu candidate figure against secondary_sources.drewry_wci.note before accepting it — an exact numeric match there is disqualifying, not confirming."
   ]
 }
 </script>
