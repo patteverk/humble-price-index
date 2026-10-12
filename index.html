@@ -6,7 +6,8 @@
 </head>
 <body>
 <title>The Humble Co. Price Index</title>
-<script type="application/json" id="price-db">{
+<script type="application/json" id="price-db">
+{
   "artifact_id": "humble-price-index",
   "version": 16,
   "created": "2026-07-08",
@@ -858,7 +859,8 @@
     "2026-10-05: New WebSearch trap variant — a generic, undated Drewry WCI query (no year or route filter) surfaced a stale cached article giving $1,157/FEU (-19% YoY), nowhere near this DB's recorded $4,300-4,500/FEU range for Aug-Sep 2026, with no clear publication date in the search summary itself. A follow-up query with an explicit year (2026) plus named routes (FEU, Shanghai, Rotterdam) returned the genuine current-week figure instead. Always add an explicit year and route filter to WCI/SCFI search queries, and sanity-check any returned figure against the series' own recent trend (not just plausibility in isolation) before accepting it — this applies even to the non-indexed Drewry cross-check field, not just the indexed scfi-eu series.",
     "2026-10-12: FOURTEENTH consecutive week of the identical total egress block, zero change since 2026-07-13. No new trap variant this week — instead both permitted WebSearch cross-checks simply failed to surface any clean current-week figure at all (Drewry: stale/conflicting results even with explicit date-range queries; SCFI Europe: only the methodology page and pre-2026 historical snapshots). Given 14/14 weeks blocked with the same root cause (this session's egress policy denies CONNECT to all external hosts except the Anthropic-hosted WebSearch path and GitHub's own local proxy), a future run should stop spending more than one quick reconfirmation + the two cross-check searches per week — the diagnosis is exhaustively established; what is needed is for the environment owner to allowlist the source hosts listed in this run's summary, not further in-session investigation."
   ]
-}</script>
+}
+</script>
 
 <style>
   :root {
